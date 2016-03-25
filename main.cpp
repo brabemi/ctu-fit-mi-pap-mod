@@ -1,18 +1,35 @@
 #include <iostream>
-
 #include <omp.h> // OpenMP library
 
-#include "CImg/CImg.h" // lib for visualisation
-//~ #include <CImg.h> // lib for visualisation 
+// if the following variable is NOT defined, program will not use any function nor include the CImg library
+// this also means that other libraries are needed
+#define CIMG_VISUAL
 
-// definition of parameters
-#define WIDTH 640 // // x-coordinate, width of simulation area
-#define HEIGHT 640 // y-coordinate, height of simulation area
-#define DEPTH 500 // z-coordinate, depth of simulation area
-#define AMOUNT 100 // amount of particles
-#define MAX_SPEED 4 // maximal default speed of particle, eg. 4 => speed in (-4;4)
-#define MAX_WEIGHT 65536 // maximal mass of particle, eg. 4 => speed in (0;4)
-#define SQRT_MAX_WEIGHT 256 // constant for calculation particle color {mass/SQRT_MAX_WEIGHT, 255, mass%SQRT_MAX_WEIGHT}
+#ifdef CIMG_VISUAL
+#include "CImg/CImg.h" // lib for visualisation
+#else
+#include <cstdio> // printf
+#include <cstdlib> // srand
+#include <cmath> // sqrt
+#endif
+
+// include our functions/structs
+#include "generator/ioproc.h" // process input file
+#include "generator/SimConfig.h" // Struct with simulation config/settings
+
+// current mapping of simulation parameters - just to clarify what is what 
+#define WIDTH sconf.width // // x-coordinate, width of simulation area
+#define HEIGHT sconf.height // y-coordinate, height of simulation area
+#define DEPTH sconf.depth // z-coordinate, depth of simulation area
+#define MAX_SPEED sconf.max_speed // maximal default speed of particle, eg. 4 => speed in (-4;4)
+#define MAX_WEIGHT sconf.max_weight // maximal mass of particle, eg. 4 => speed in (0;4)
+// amount of particles
+#define AMOUNT sconf.amount // amount of particles
+// number of simulation steps is specified in SimConfig struct as simulation_steps
+#define SQRT_MAX_WEIGHT (int)sqrt(sconf.max_weight) // constant for calculation particle color {mass/SQRT_MAX_WEIGHT, 255, mass%SQRT_MAX_WEIGHT}
+// ------------- END OF MODIFIED MAPPINGs
+
+// parameters for calculations (movement of particles)
 #define F_QUOC 0.0005 // compensatory quotient for  MAX_WEIGHT
 #define BOUNCE_LOSS 0.8 // conversion rate of velocity on bounce, eg. 0.8 => 80% of speed after bounce
 
@@ -30,7 +47,11 @@ TODO:
 ...
 */
 
+#ifdef CIMG_VISUAL
 using namespace cimg_library; // -> no need to use cimg_library::function()
+#else
+using namespace std;
+#endif
 
 bool bounce (double x, double y, double z) {
 	return (x < 0) || (WIDTH < x) || (y < 0) || (HEIGHT < y) || (z < 0) || (DEPTH < z);
