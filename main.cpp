@@ -53,7 +53,7 @@ using namespace cimg_library; // -> no need to use cimg_library::function()
 using namespace std;
 #endif
 
-bool bounce (double x, double y, double z) {
+bool bounce (double x, double y, double z, SimConfig & sconf) {
 	return (x < 0) || (WIDTH < x) || (y < 0) || (HEIGHT < y) || (z < 0) || (DEPTH < z);
 }
 
@@ -76,65 +76,49 @@ double debounce_pos (double pos, int min, int max) {
 
 int main(int argc, char** argv) {
 	
+	// simulation configuration
+	SimConfig sconf;
+	
+	// process input
+	if(argc == 2)
+	{
+		printf("Processing input file %s\n", argv[1]);
+		processInputFile(argv[1], sconf);
+	}
+	else
+	{
+		printf("ERROR: Wrong/Missing parameters.\n");
+		return 0;
+	}
+	
+	printf("Input file processed.\n");
+	
+	#ifdef CIMG_VISUAL
 	// image ~ "drawing panel"
-	CImg<unsigned char> img( WIDTH , HEIGHT ,1,3);
+	CImg<unsigned char> img( sconf.width, sconf.height,1,3);
 	// colours
 	const unsigned char red[] = { 255,0,0 }, green[] = { 0,255,0 }, blue[] = { 0,0,255 };
+	#endif
 	
 	// iterators
 	int i, j;
 	// random gen. init
 	srand(time(NULL));
 	
-	// data structures for particles
+	// pointers to arrays
+	double * x = sconf.x;
+	double * y = sconf.y;
+	double * z = sconf.z;
 	
-	double x[AMOUNT];
-	double y[AMOUNT];
-	double z[AMOUNT];
-
-	double xnew[AMOUNT];
-	double ynew[AMOUNT];
-	double znew[AMOUNT];
+	double * m = sconf.m;
 	
-	// masses
-	double m[AMOUNT];
+	double * vx = sconf.vx;
+	double * vy = sconf.vy;
+	double * vz = sconf.vz;
 	
-	// speeds
-	double vx[AMOUNT];
-	double vy[AMOUNT];
-	double vz[AMOUNT];
-	
-	// generation of random particle parameter values
-	for(i = 0; i < AMOUNT; i++)
-	{
-		x[i] = rand() % WIDTH;
-		y[i] = rand() % HEIGHT;
-		//~ z[i] = rand() % DEPTH;
-		z[i] = 0; // 2D simulation
-		
-		m[i] = rand() % MAX_WEIGHT;
-		//~ vz[i] = rand() % 10;
-		vx[i] = -1 * MAX_SPEED + rand() % (2 * MAX_SPEED + 1);
-		vy[i] = -1 * MAX_SPEED + rand() % (2 * MAX_SPEED + 1);
-		//~ vz[i] = -1 * MAX_SPEED + rand() % (2 * MAX_SPEED + 1);
-		vz[i] = 0; // 2D simulation
-	}
-	
-	/*
-		int x[] = {10,20,30,40,50,60};
-		int y[] = {10,20,30,40,50,60};
-		int z[] = {10,20,30,40,50,60};
-
-		int xnew[] = {1,2,3,4,5,6};
-		int ynew[] = {1,2,3,4,5,6};
-		int znew[] = {1,2,3,4,5,6};
-
-		int m[] = {10,20,30,40,50,60};
-
-		int vx[] = {10,10,10,10,10,10};
-		int vy[] = {1,2,3,4,5,6};
-		int vz[] = {1,2,3,4,5,6};
-	*/
+	double * xnew = new double[sconf.amount];
+	double * ynew = new double[sconf.amount];
+	double * znew = new double[sconf.amount];
 	
 	// variables used in computations
 	double ax, ay, az;
@@ -143,12 +127,13 @@ int main(int argc, char** argv) {
 	double f;
 	
 	// definitino of "n" - used in algorithm on site
-	int n = AMOUNT;
+	int n = = sconf.amount;
 	
 	// constants for computing particle movement 
 	double dt = 0.1; // original value was 0.0001, that was too little for current values of particle parameters 
 	double eps = 0.0001;
 	
+	#ifdef CIMG_VISUAL
 	// initialization of window
 	img.fill(0); //< fill img with black colour
 
@@ -159,12 +144,11 @@ int main(int argc, char** argv) {
 	}
 	// create a Window (caption Playground) and fill it with image	
 	CImgDisplay main_disp(img,"Playground");
-
-	// variables for detection of all particles in one place (point)
-	int xFin, yFin, zFin;
+	#endif
 
 	unsigned steps = 0;
-	// while the Window is still opened ...
+	
+	printf("Starting simulation ...\n");
 	while (!main_disp.is_closed()) {
 		
 		// compute new coordinates of all particles in parallel
@@ -222,34 +206,12 @@ int main(int argc, char** argv) {
 			y[i] = ynew[i];
 			z[i] = znew[i];
 		}
-		
-		// START - broken code, compare int with double (==)
-		// indicate whether all particles are in the same place (same XYZ coordinates)
-		xFin = x[0];
-		yFin = y[0];
-		zFin = z[0];
-		
-		bool same_place = true;
-		
-		for(i = 1; i < n; i++)
-		{
-			if((xFin == x[i]) &&
-			(yFin == y[i])
-			)
-			{}
-			else same_place = false;
-		}
-		// END - broken code, compare int with double (==)
-		
+			
 		// redraw the image and show it in the window
 		if(steps%500 == 0) {
 			img.fill(0); //< black background 
 		}
-		// Sill false - broken code, compare int with double (==)
-		// information about same coordinates of all particles
-		if(same_place) {
-			img.draw_text(WIDTH/10, HEIGHT/2, "ALL IN ONE PLACE", red, blue);
-		}
+
 		// draw all particles
 		for(i = 0; i < n; i++) {
 			//~ const unsigned char color[] = {(unsigned char) (m[i]/SQRT_MAX_WEIGHT), 255, (unsigned char) (((int) m[i])%SQRT_MAX_WEIGHT)};
