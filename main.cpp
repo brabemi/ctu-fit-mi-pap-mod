@@ -148,6 +148,7 @@ int main(int argc, char** argv) {
 
 	unsigned steps = 0;
 	
+	double t1 = omp_get_wtime();
 	printf("Starting simulation ...\n");
 	while (steps < sconf.simulation_steps) {
 		
@@ -234,6 +235,10 @@ int main(int argc, char** argv) {
 		
 		steps++;
 	}
+	
+	double t2 = omp_get_wtime(); // in seconds
+	
+	printf("Time: %lf seconds\n",(t2-t1));
 	
 	delete [] xnew;
 	delete [] ynew;
