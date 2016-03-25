@@ -1,9 +1,11 @@
 #include <iostream>
+
+#define PARALLEL_OPENMP //< define for OpenMP, undefine for sequential
 #include <omp.h> // OpenMP library
 
 // if the following variable is NOT defined, program will not use any function nor include the CImg library
 // this also means that other libraries are needed
-#define CIMG_VISUAL
+#define CIMG_VISUALA
 
 #ifdef CIMG_VISUAL
 #include "CImg/CImg.h" // lib for visualisation
@@ -147,20 +149,25 @@ int main(int argc, char** argv) {
 	#endif
 
 	unsigned steps = 0;
-	
+
 	double t1 = omp_get_wtime();
+
 	printf("Starting simulation ...\n");
 	while (steps < sconf.simulation_steps) {
 		
 		// compute new coordinates of all particles in parallel
+		#ifdef PARALLEL_OPENMP
 		#pragma omp parallel for num_threads(4) private(ax,ay,az,dx,dy,dz,invr,invr3,f)
+		#endif
 		for(i=0; i<n; i++) { /* Foreach particle "i" ... */
 			ax=0.0;
 			ay=0.0;
 			az=0.0;
 			
 			// reduction = parallel reduction of accelerations ax, ay, az
+			#ifdef PARALLEL_OPENMP
 			#pragma omp parallel for num_threads(4) private(dx,dy,dz,invr,invr3,f) reduction(+:ax,ay,az)
+			#endif
 			for(j=0; j<n; j++) { /* Loop over all particles "j" */
 				dx=x[j]-x[i];
 				dy=y[j]-y[i];
@@ -204,7 +211,9 @@ int main(int argc, char** argv) {
 		#endif
 		
 		// update all coordinates of all particles in parallel
+		#ifdef PARALLEL_OPENMP
 		#pragma omp parallel for num_threads(4)
+		#endif
 		for(i=0; i<n; i++) { /* copy updated positions back into original arrays */
 			if( bounce(xnew[i], ynew[i], znew[i], sconf) ) {
 				printf("Particle %d out of borders (x, y, z) = (%0.3f, %0.3f, %0.3f)\n", i, xnew[i], ynew[i], znew[i]);
