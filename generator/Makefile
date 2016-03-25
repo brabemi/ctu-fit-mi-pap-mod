@@ -3,7 +3,6 @@ CXX=g++
 PREP=-c -o
 REMOVE=rm -rf
 BIN=./generator
-DOXYG=Doxyfile
 OBJ=./SimConfig.o ./ioproc.o ./generator.o
 
 compile: $(BIN)
