@@ -5,7 +5,7 @@
 
 // if the following variable is NOT defined, program will not use any function nor include the CImg library
 // this also means that other libraries are needed
-#define CIMG_VISUALA
+#define CIMG_VISUAL
 
 #ifdef CIMG_VISUAL
 #include "CImg/CImg.h" // lib for visualisation
@@ -37,16 +37,27 @@
 
 /*
 CURRENT STATE:
-- infinite simulation of NBody
+- finite simulation of NBody
 - bouncing, borders
 - no particle collisions
 - no detection if 
 
+LAST UPDATE (just to clarify what happened - move to CURRENT STATE after review):
+- inner loop in simulation is now parallelized with parallel reduction of accelerations
+- define maximum steps of simulation - viz SimConfig::simulation_steps
+- input (definition of particles) from file/as parameters from comm. line - viz generator.cpp and ioproc.cpp
+- input constants as parameters (WIDTH, MAX_SPEED, ...) - viz generator.cpp
+- for CImg visualisation, variable "CIMG_VISUAL" must be defined - uncomment #define CIMG_VISUAL at the beginning of this file
+
+- created standalone generator (in directory "generator")
+- simulation should be run with: ./simulator input.txt
+- valgrind says the program leaks a bit (6 block every time) - with --leak-check=full --show-leak-kinds=all, it seems that libgomp causes that
+
+- reworked makefile (make compile, make clean)
+
 TODO:
-- define maximum steps of simulation
-- input (definition of particles) from file/as parameters from comm. line
-- input constants as parameters (WIDTH, MAX_SPEED, ...)
 ...
+
 */
 
 #ifdef CIMG_VISUAL
