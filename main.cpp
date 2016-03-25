@@ -127,7 +127,7 @@ int main(int argc, char** argv) {
 	double f;
 	
 	// definitino of "n" - used in algorithm on site
-	int n = = sconf.amount;
+	int n = sconf.amount;
 	
 	// constants for computing particle movement 
 	double dt = 0.1; // original value was 0.0001, that was too little for current values of particle parameters 
@@ -149,7 +149,7 @@ int main(int argc, char** argv) {
 	unsigned steps = 0;
 	
 	printf("Starting simulation ...\n");
-	while (!main_disp.is_closed()) {
+	while (steps < sconf.simulation_steps) {
 		
 		// compute new coordinates of all particles in parallel
 		#pragma omp parallel for num_threads(4) private(ax,ay,az,dx,dy,dz,invr,invr3,f)
@@ -157,7 +157,9 @@ int main(int argc, char** argv) {
 			ax=0.0;
 			ay=0.0;
 			az=0.0;
-
+			
+			// reduction = parallel reduction of accelerations ax, ay, az
+			#pragma omp parallel for num_threads(4) private(dx,dy,dz,invr,invr3,f) reduction(+:ax,ay,az)
 			for(j=0; j<n; j++) { /* Loop over all particles "j" */
 				dx=x[j]-x[i];
 				dy=y[j]-y[i];
@@ -178,7 +180,7 @@ int main(int argc, char** argv) {
 			ynew[i] = y[i] + dt*vy[i] + 0.5*dt*dt*ay;
 			znew[i] = z[i] + dt*vz[i] + 0.5*dt*dt*az;
 			
-			if( bounce(xnew[i], ynew[i], znew[i]) ) {
+			if( bounce(xnew[i], ynew[i], znew[i], sconf) ) {
 				// update of particle velocity, change direction and value (BOUNCE_LOSS)
 				vx[i] = debounce_vel(vx[i], xnew[i], 0, WIDTH);
 				vy[i] = debounce_vel(vy[i], ynew[i], 0, HEIGHT);
@@ -190,16 +192,20 @@ int main(int argc, char** argv) {
 			}
 		}
 		
+		#ifdef CIMG_VISUAL
+		if(main_disp.is_closed()) break;
+		
 		for(i = 0; i < n; i++) {
 			const unsigned char color[] = {(unsigned char) (m[i]/SQRT_MAX_WEIGHT), 255, (unsigned char) (((int) m[i])%SQRT_MAX_WEIGHT)};
 			img.draw_circle(x[i],y[i],1,color);
 			//~ img.draw_circle(x[i],y[i],2,green);
 		}
+		#endif
 		
 		// update all coordinates of all particles in parallel
 		#pragma omp parallel for num_threads(4)
 		for(i=0; i<n; i++) { /* copy updated positions back into original arrays */
-			if( bounce(xnew[i], ynew[i], znew[i]) ) {
+			if( bounce(xnew[i], ynew[i], znew[i], sconf) ) {
 				printf("Particle %d out of borders (x, y, z) = (%0.3f, %0.3f, %0.3f)\n", i, xnew[i], ynew[i], znew[i]);
 			}
 			x[i] = xnew[i];
@@ -207,6 +213,7 @@ int main(int argc, char** argv) {
 			z[i] = znew[i];
 		}
 			
+		#ifdef CIMG_VISUAL
 		// redraw the image and show it in the window
 		if(steps%500 == 0) {
 			img.fill(0); //< black background 
@@ -221,11 +228,16 @@ int main(int argc, char** argv) {
 		// display the image in window	
 		img.display(main_disp);
 		
-		steps++;
-		
 		// wait for some time
 		cimg::wait(20); // in milisec
+		#endif
+		
+		steps++;
 	}
+	
+	delete [] xnew;
+	delete [] ynew;
+	delete [] znew;	
 
 	return 0;
 }
