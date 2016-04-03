@@ -91,27 +91,25 @@ int main(int argc, char** argv) {
 	
 	// simulation configuration
 	SimConfig sconf;
-	
+	int threads;
+	bool graphics;
+
 	// process input
-	if(argc == 2)
+	if(argc == 4)
 	{
-		printf("Processing input file %s\n", argv[1]);
-		processInputFile(argv[1], sconf);
+		threads = atoi(argv[1]);
+		graphics = atoi(argv[2]) == 1;
+		printf("Processing input file %s\n", argv[3]);
+		processInputFile(argv[3], sconf);
 	}
 	else
 	{
 		printf("ERROR: Wrong/Missing parameters.\n");
+		printf("Expect: \t%s THREADS GRAPHICS[0,1] INPUT_FILE", argv[0]);
 		return 0;
 	}
 	
-	printf("Input file processed.\n");
-	
-	#ifdef CIMG_VISUAL
-	// image ~ "drawing panel"
-	CImg<unsigned char> img( sconf.width, sconf.height,1,3);
-	// colours
-	const unsigned char red[] = { 255,0,0 }, green[] = { 0,255,0 }, blue[] = { 0,0,255 };
-	#endif
+	printf("Input file processed.\n");	
 	
 	// iterators
 	int i, j;
@@ -144,19 +142,30 @@ int main(int argc, char** argv) {
 	
 	// constants for computing particle movement 
 	double dt = 0.1; // original value was 0.0001, that was too little for current values of particle parameters 
-	double eps = 0.0001;
+	double eps = 0.005;
 	
 	#ifdef CIMG_VISUAL
-	// initialization of window
-	img.fill(0); //< fill img with black colour
+	// image ~ "drawing panel"
+	CImg<unsigned char> img;
+	CImgDisplay main_disp;
+	// colours
+	const unsigned char red[] = { 255,0,0 }, green[] = { 0,255,0 }, blue[] = { 0,0,255 };
 
-	// draw all points
-	for(i = 0; i < n; i++) {
-		const unsigned char color[] = {(unsigned char) (m[i]/SQRT_MAX_WEIGHT), 255, (unsigned char) (((int) m[i])%SQRT_MAX_WEIGHT)};
-		img.draw_point(x[i],y[i],color);
+	if(graphics) {
+		// image ~ "drawing panel"
+		img = CImg<unsigned char> ( sconf.width, sconf.height,1,3);
+
+		// initialization of window
+		img.fill(0); //< fill img with black colour
+	
+		// draw all points
+		for(i = 0; i < n; i++) {
+			const unsigned char color[] = {(unsigned char) (m[i]/SQRT_MAX_WEIGHT), 255, (unsigned char) (((int) m[i])%SQRT_MAX_WEIGHT)};
+			img.draw_point(x[i],y[i],color);
+		}
+		// create a Window (caption Playground) and fill it with image	
+		main_disp = CImgDisplay(img,"Playground");
 	}
-	// create a Window (caption Playground) and fill it with image	
-	CImgDisplay main_disp(img,"Playground");
 	#endif
 
 	unsigned steps = 0;
@@ -168,7 +177,7 @@ int main(int argc, char** argv) {
 		
 		// compute new coordinates of all particles in parallel
 		#ifdef PARALLEL_OPENMP
-		#pragma omp parallel for num_threads(4) private(ax,ay,az,dx,dy,dz,invr,invr3,f)
+		#pragma omp parallel for num_threads(threads) private(ax,ay,az,dx,dy,dz,invr,invr3,f)
 		#endif
 		for(i=0; i<n; i++) { /* Foreach particle "i" ... */
 			ax=0.0;
@@ -177,7 +186,7 @@ int main(int argc, char** argv) {
 			
 			// reduction = parallel reduction of accelerations ax, ay, az
 			#ifdef PARALLEL_OPENMP
-			#pragma omp parallel for num_threads(4) private(dx,dy,dz,invr,invr3,f) reduction(+:ax,ay,az)
+			#pragma omp parallel for num_threads(threads) private(dx,dy,dz,invr,invr3,f) reduction(+:ax,ay,az)
 			#endif
 			for(j=0; j<n; j++) { /* Loop over all particles "j" */
 				dx=x[j]-x[i];
@@ -212,18 +221,20 @@ int main(int argc, char** argv) {
 		}
 		
 		#ifdef CIMG_VISUAL
-		if(main_disp.is_closed()) break;
-		
-		for(i = 0; i < n; i++) {
-			const unsigned char color[] = {(unsigned char) (m[i]/SQRT_MAX_WEIGHT), 255, (unsigned char) (((int) m[i])%SQRT_MAX_WEIGHT)};
-			img.draw_circle(x[i],y[i],1,color);
-			//~ img.draw_circle(x[i],y[i],2,green);
+		if(graphics) {
+			if(main_disp.is_closed()) break;
+			
+			for(i = 0; i < n; i++) {
+				const unsigned char color[] = {(unsigned char) (m[i]/SQRT_MAX_WEIGHT), 255, (unsigned char) (((int) m[i])%SQRT_MAX_WEIGHT)};
+				img.draw_circle(x[i],y[i],1,color);
+				//~ img.draw_circle(x[i],y[i],2,green);
+			}
 		}
 		#endif
 		
 		// update all coordinates of all particles in parallel
 		#ifdef PARALLEL_OPENMP
-		#pragma omp parallel for num_threads(4)
+		#pragma omp parallel for num_threads(threads)
 		#endif
 		for(i=0; i<n; i++) { /* copy updated positions back into original arrays */
 			if( bounce(xnew[i], ynew[i], znew[i], sconf) ) {
@@ -235,30 +246,34 @@ int main(int argc, char** argv) {
 		}
 			
 		#ifdef CIMG_VISUAL
-		// redraw the image and show it in the window
-		if(steps%500 == 0) {
-			img.fill(0); //< black background 
+		if(graphics) {
+			// redraw the image and show it in the window
+			if(steps%500 == 0) {
+				img.fill(0); //< black background 
+			}
+	
+			// draw all particles
+			for(i = 0; i < n; i++) {
+				//~ const unsigned char color[] = {(unsigned char) (m[i]/SQRT_MAX_WEIGHT), 255, (unsigned char) (((int) m[i])%SQRT_MAX_WEIGHT)};
+				img.draw_circle(x[i],y[i],1,red);
+				//~ img.draw_circle(x[i],y[i],2,green);
+			}
+			// display the image in window	
+			img.display(main_disp);
+			
+			// wait for some time
+			cimg::wait(20); // in milisec
 		}
-
-		// draw all particles
-		for(i = 0; i < n; i++) {
-			//~ const unsigned char color[] = {(unsigned char) (m[i]/SQRT_MAX_WEIGHT), 255, (unsigned char) (((int) m[i])%SQRT_MAX_WEIGHT)};
-			img.draw_circle(x[i],y[i],1,red);
-			//~ img.draw_circle(x[i],y[i],2,green);
-		}
-		// display the image in window	
-		img.display(main_disp);
-		
-		// wait for some time
-		cimg::wait(20); // in milisec
 		#endif
-		
+		if(100*steps % sconf.simulation_steps == 0) {
+			printf("%.1f%% completed\n", 100.0*steps/sconf.simulation_steps);
+		}
 		steps++;
 	}
 	
 	double t2 = omp_get_wtime(); // in seconds
 	
-	printf("Time: %lf seconds\n",(t2-t1));
+	printf("Time: %f seconds\n",(t2-t1));
 	
 	delete [] xnew;
 	delete [] ynew;
