@@ -49,15 +49,15 @@ int allocateDynamicArrays(SimConfig & sconf)
 {
 	if(sconf.amount < 1) return -1; // NOPE
 	
-	sconf.x = new double[sconf.amount];
-	sconf.y = new double[sconf.amount];
-	sconf.z = new double[sconf.amount];
+	sconf.x = new float[sconf.amount];
+	sconf.y = new float[sconf.amount];
+	sconf.z = new float[sconf.amount];
 	
-	sconf.m = new double[sconf.amount];
+	sconf.m = new float[sconf.amount];
 	
-	sconf.vx = new double[sconf.amount];
-	sconf.vy = new double[sconf.amount];
-	sconf.vz = new double[sconf.amount];
+	sconf.vx = new float[sconf.amount];
+	sconf.vy = new float[sconf.amount];
+	sconf.vz = new float[sconf.amount];
 	
 	return 0;
 }

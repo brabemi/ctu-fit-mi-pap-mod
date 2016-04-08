@@ -9,11 +9,11 @@
 
 #ifdef CIMG_VISUAL
 #include "CImg/CImg.h" // lib for visualisation
-#else
+#endif
 #include <cstdio> // printf
 #include <cstdlib> // srand
 #include <cmath> // sqrt
-#endif
+#include <xmmintrin.h> //SSERsqrt
 
 // include our functions/structs
 #include "generator/ioproc.h" // process input file
@@ -66,18 +66,18 @@ using namespace cimg_library; // -> no need to use cimg_library::function()
 using namespace std;
 #endif
 
-bool bounce (double x, double y, double z, SimConfig & sconf) {
+bool bounce (float x, float y, float z, SimConfig & sconf) {
 	return (x < 0) || (WIDTH < x) || (y < 0) || (HEIGHT < y) || (z < 0) || (DEPTH < z);
 }
 
-double debounce_vel (double vel, double pos, int min, int max) {
+float debounce_vel (float vel, float pos, int min, int max) {
 	if((pos < min) || (max < pos)) {
 		return -1*BOUNCE_LOSS*vel;
 	}
 	return BOUNCE_LOSS*vel;
 }
 
-double debounce_pos (double pos, int min, int max) {
+float debounce_pos (float pos, int min, int max) {
 	if(pos < min) {
 		return -1 * pos;
 	}
@@ -86,6 +86,13 @@ double debounce_pos (double pos, int min, int max) {
 	}
 	return pos;
 }
+
+inline void SSERsqrt( float * pOut, float * pIn )
+{
+	_mm_store_ss( pOut, _mm_rsqrt_ss( _mm_load_ss( pIn ) ) );
+	// compiles to movss, sqrtss, movss
+}
+
 
 int main(int argc, char** argv) {
 	
@@ -117,32 +124,32 @@ int main(int argc, char** argv) {
 	srand(time(NULL));
 	
 	// pointers to arrays
-	double * x = sconf.x;
-	double * y = sconf.y;
-	double * z = sconf.z;
+	float * x = sconf.x;
+	float * y = sconf.y;
+	float * z = sconf.z;
 	
-	double * m = sconf.m;
+	float * m = sconf.m;
 	
-	double * vx = sconf.vx;
-	double * vy = sconf.vy;
-	double * vz = sconf.vz;
+	float * vx = sconf.vx;
+	float * vy = sconf.vy;
+	float * vz = sconf.vz;
 	
-	double * xnew = new double[sconf.amount];
-	double * ynew = new double[sconf.amount];
-	double * znew = new double[sconf.amount];
+	float * xnew = new float[sconf.amount];
+	float * ynew = new float[sconf.amount];
+	float * znew = new float[sconf.amount];
 	
 	// variables used in computations
-	double ax, ay, az;
-	double dx, dy, dz;
-	double invr, invr3;
-	double f;
+	float ax, ay, az;
+	float dx, dy, dz;
+	float invr, invr3;
+	float f;
 	
 	// definitino of "n" - used in algorithm on site
 	int n = sconf.amount;
 	
 	// constants for computing particle movement 
-	double dt = 0.1; // original value was 0.0001, that was too little for current values of particle parameters 
-	double eps = 0.005;
+	float dt = 0.1; // original value was 0.0001, that was too little for current values of particle parameters 
+	float eps = 0.005;
 	
 	#ifdef CIMG_VISUAL
 	// image ~ "drawing panel"
@@ -170,7 +177,7 @@ int main(int argc, char** argv) {
 
 	unsigned steps = 0;
 
-	double t1 = omp_get_wtime();
+	float t1 = omp_get_wtime();
 
 	printf("Starting simulation ...\n");
 	while (steps < sconf.simulation_steps) {
@@ -192,7 +199,9 @@ int main(int argc, char** argv) {
 				dx=x[j]-x[i];
 				dy=y[j]-y[i];
 				dz=z[j]-z[i];
-				invr = 1.0/sqrt(dx*dx + dy*dy + dz*dz + eps);
+				invr = 1.0/sqrtf(dx*dx + dy*dy + dz*dz + eps);
+				//~ float tmp_sum = dx*dx + dy*dy + dz*dz + eps;
+				//~ SSERsqrt(&invr, &tmp_sum);
 				invr3 = invr*invr*invr;
 				f=F_QUOC*m[j]*invr3;
 				ax += f*dx; /* accumulate the acceleration from gravitational attraction */
@@ -271,7 +280,7 @@ int main(int argc, char** argv) {
 		steps++;
 	}
 	
-	double t2 = omp_get_wtime(); // in seconds
+	float t2 = omp_get_wtime(); // in seconds
 	
 	printf("Time: %f seconds\n",(t2-t1));
 	

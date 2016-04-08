@@ -27,7 +27,7 @@ int processInputFile(const char * inputFilename, SimConfig & sconf)
 	
 	// expected format of file:
 	/* (first line of file): amount sim_steps width height depth max_speed max_weight
-	 * (every other line): x y z m vx vy vz<lf> (x y (...) vz = doubles)
+	 * (every other line): x y z m vx vy vz<lf> (x y (...) vz = floats)
 	 */
 	
 	string inputLine = "";
@@ -57,13 +57,13 @@ int processInputFile(const char * inputFilename, SimConfig & sconf)
 	}
 	
 	// allocation of arrays
-	sconf.x = new double[sconf.amount];
-	sconf.y = new double[sconf.amount];
-	sconf.z = new double[sconf.amount];
-	sconf.m = new double[sconf.amount];
-	sconf.vx = new double[sconf.amount];
-	sconf.vy = new double[sconf.amount];
-	sconf.vz = new double[sconf.amount];
+	sconf.x = new float[sconf.amount];
+	sconf.y = new float[sconf.amount];
+	sconf.z = new float[sconf.amount];
+	sconf.m = new float[sconf.amount];
+	sconf.vx = new float[sconf.amount];
+	sconf.vy = new float[sconf.amount];
+	sconf.vz = new float[sconf.amount];
 	
 	for(int i = 0; i < sconf.amount; i++)
 	{
@@ -80,7 +80,7 @@ int processInputFile(const char * inputFilename, SimConfig & sconf)
 		#ifdef DEBUG_INPUT
 		cout << "ISS CONTENT:" << iss.str() << endl;
 		#endif
-		// read values (doubles)
+		// read values (floats)
 		iss >> sconf.x[i] >> sconf.y[i] >> sconf.z[i];
 		iss >> sconf.m[i];
 		iss >> sconf.vx[i] >> sconf.vy[i] >> sconf.vz[i];
@@ -131,7 +131,7 @@ int createOutputFile(const char * outputFilename, SimConfig & sconf)
 	
 	// expected format of file:
 	/* (first line of file): amount (= integer, amount of particles stored in this file)
-	 * (every other line): x y z m vx vy vz<lf> (x y (...) vz = doubles)
+	 * (every other line): x y z m vx vy vz<lf> (x y (...) vz = floats)
 	 */
 	
 	// first line = amount
@@ -159,15 +159,15 @@ int main(int argc, char **argv)
 	SimConfig sconf;
 	sconf.amount = 6;
 	
-	sconf.x = new double[6];
-	sconf.y = new double[6];
-	sconf.z = new double[6];
+	sconf.x = new float[6];
+	sconf.y = new float[6];
+	sconf.z = new float[6];
 	
-	sconf.m = new double[6];
+	sconf.m = new float[6];
 	
-	sconf.vx = new double[6];
-	sconf.vy = new double[6];
-	sconf.vz = new double[6];
+	sconf.vx = new float[6];
+	sconf.vy = new float[6];
+	sconf.vz = new float[6];
 	
 	for(int i = 1; i < 7; i++)
 	{

@@ -11,15 +11,15 @@ struct SimConfig
 	unsigned height; //< y-coordinate, width of simulation area
 	unsigned depth; //< z-coordinate, width of simulation area
 	
-	double * x; //< arrays of x-coordinates of particles
-	double * y; //< arrays of y-coordinates of particles
-	double * z; //< arrays of z-coordinates of particles
+	float * x; //< arrays of x-coordinates of particles
+	float * y; //< arrays of y-coordinates of particles
+	float * z; //< arrays of z-coordinates of particles
 	
-	double * m; //< arrays of masses of particles
+	float * m; //< arrays of masses of particles
 	
-	double * vx; //< arrays of x-axis speeds of particles
-	double * vy; //< arrays of y-axis speeds of particles 
-	double * vz; //< arrays of z-axis speeds of particles
+	float * vx; //< arrays of x-axis speeds of particles
+	float * vy; //< arrays of y-axis speeds of particles 
+	float * vz; //< arrays of z-axis speeds of particles
 	
 	int max_speed; //< maximum speed of particle
 	int max_weight; //< maximum weight of particle

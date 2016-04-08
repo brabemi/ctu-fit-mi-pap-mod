@@ -5,8 +5,8 @@ REMOVE=rm -rf
 PREP=-c -o
 OBJ=./SimConfig.o ./ioproc.o ./main.o
 
-CIMGFLAGS=-O2 -L/usr/X11R6/lib -lm -lpthread -lX11
-COMPFLAGS=-fopenmp
+CIMGFLAGS=-O3 -L/usr/X11R6/lib -lm -lpthread -lX11
+COMPFLAGS=-fopenmp -fopt-info-vec
 CFLAGS=-Wall -pedantic -Wno-long-long
 
 compile: $(BIN)
