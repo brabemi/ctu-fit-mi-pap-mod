@@ -1,0 +1,92 @@
+\documentclass[12pt]{article}
+\usepackage[cp1250]{inputenc}
+\usepackage[czech]{babel}
+\usepackage{enumitem}
+\usepackage{caption}
+
+\usepackage{graphicx}
+
+\begin{document}
+
+\begin{center}
+\bf Semestrální projekt MI-PAP 2015/2016:\\[5mm]
+    Modelování èástic\\[5mm]
+       Miroslav Brabenec\\
+       Jan Nováèek\\[2mm]
+magisterské studium, FIT ÈVUT, Thákurova 9, 160 00 Praha 6\\[2mm]
+\today
+\end{center}
+%
+%
+%
+% Co má být ve zprávì: https://edux.fit.cvut.cz/courses/MI-PAP/labs/technicka_zprava
+%
+%
+\section{Definice problému, popis sekvenèního algoritmu a jeho implementace}
+
+\subsection{Definice problému}
+Implementujte tento algoritmus (viz \url{http://www.browndeertechnology.com/docs/BDT_OpenCL_Tutorial_NBody-rev3.html#algorithm}) a upravte ho takto:
+
+\begin{enumerate}
+\item	èástice pøi nárazu provedou pružný odraz a
+\item	každá èástice má svùj náboj
+\end{enumerate}
+
+Úkol: doplòte o možnost vizualizace (alespoò exportem dat v daných èasových okamžicích ve formátu vhodném pro vizualizaci v nástroji tøetích stran napø. ) 
+
+\subsection{Popis sekvenèního algoritmu}
+Simulátor naète nastavení simulace a poèáteèní umístìní èástic ze vstupního souboru, z toho nainicializuje hodnoty a spustí simulaci.
+
+Simulace bìží, dokud ...
+
+\subsection{Sekvenèní implementace}
+
+\begin{center}
+\begin{tabular}{cc}
+\textbf{Poèet èástic} & \textbf{Poèet krokù sim.}  & \textbf{Namìøený èas} \\ \hline \hline
+XX & YY & ZZ s \\ \hline
+\end{tabular}
+\captionof{table}{Èasy sekvenèního øešení}
+\end{center}
+
+
+\section{Popis paralelního algoritmu a jeho implementace v OpenMP}
+
+    Popis pøípadných úprav algoritmu a jeho implementace, vèetnì volby datových struktur
+
+    Zda byla využita vektorizace (popø. proè jí nemožno využít)
+
+    Popis optimalizací pro dosažení lineárního zrychlení
+
+    Tabulkovì a pøípadnì graficky zpracované namìøené hodnoty èasové složitosti mìøených instancí bìhu (optimalizované implementace) programu s popisem instancí dat
+
+    Analýza a hodnocení vlastností dané implementace programu.
+
+\section{Namìøené výsledky a vyhodnocení pro OpenMP}
+
+\subsection{1. mìøení}
+První mìøení bylo provádìno na vstupních datech velikosti XX èástic a YY krokù simulace.
+
+\begin{center}
+\begin{tabular}{cc}
+\textbf{Poèet procesorù} & \textbf{Namìøený èas} \\ \hline \hline
+1 & ... s \\ \hline
+2 & ... s \\ \hline
+4 & ... s \\ \hline
+8 & ... s \\ \hline
+12 & ... s \\ \hline
+24 & ... s \\ \hline
+\end{tabular}
+\captionof{table}{Èasy 1. mìøení}
+\end{center}
+
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics[width=12cm]{images/mereni1.jpg}
+    \caption{Paralelní zrychlení 1. mìøení} 
+  \end{center}
+\end{figure}
+
+Pøi prvním mìøení jsme dosáhli ...
+
+\end{document}
