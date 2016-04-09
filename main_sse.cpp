@@ -9,6 +9,9 @@
 
 #define SSE_SQRT
 
+#define LOGGING // all logging output except for the line with "#THREADS #SECONDS" info
+#undef LOGGING
+
 #ifdef CIMG_VISUAL
 #include "CImg/CImg.h" // lib for visualisation
 #endif
@@ -113,7 +116,9 @@ int main(int argc, char** argv) {
 		#ifdef CIMG_VISUAL
 		graphics = atoi(argv[2]) == 1;
 		#endif
+		#ifdef LOGGING
 		printf("Processing input file %s\n", argv[3]);
+		#endif
 		processInputFile(argv[3], sconf);
 	}
 	else
@@ -122,9 +127,9 @@ int main(int argc, char** argv) {
 		printf("Expect: \t%s THREADS GRAPHICS[0,1] INPUT_FILE", argv[0]);
 		return 0;
 	}
-	
+	#ifdef LOGGING
 	printf("Input file processed.\n");	
-	
+	#endif
 	// iterators
 	int i, j;
 	// random gen. init
@@ -185,8 +190,9 @@ int main(int argc, char** argv) {
 	unsigned steps = 0;
 
 	float t1 = omp_get_wtime();
-
+	#ifdef LOGGING
 	printf("Starting simulation ...\n");
+	#endif
 	while (steps < sconf.simulation_steps) {
 		
 		// compute new coordinates of all particles in parallel
@@ -259,7 +265,9 @@ int main(int argc, char** argv) {
 		#endif
 		for(i=0; i<n; i++) { /* copy updated positions back into original arrays */
 			if( bounce(xnew[i], ynew[i], znew[i], sconf) ) {
+				#ifdef LOGGING
 				printf("Particle %d out of borders (x, y, z) = (%0.3f, %0.3f, %0.3f)\n", i, xnew[i], ynew[i], znew[i]);
+				#endif
 			}
 			x[i] = xnew[i];
 			y[i] = ynew[i];
@@ -287,14 +295,18 @@ int main(int argc, char** argv) {
 		}
 		#endif
 		if(100*steps % sconf.simulation_steps == 0) {
+			#ifdef LOGGING
 			printf("%.1f%% completed\n", 100.0*steps/sconf.simulation_steps);
+			#endif
 		}
 		steps++;
 	}
 	
 	float t2 = omp_get_wtime(); // in seconds
-	
+	#ifdef LOGGING
 	printf("Time: %f seconds\n",(t2-t1));
+	#endif
+	printf("%d %f\n", threads, (t2-t1));
 	
 	delete [] xnew;
 	delete [] ynew;

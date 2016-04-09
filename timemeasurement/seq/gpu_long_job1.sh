@@ -30,4 +30,4 @@
 # Do not change.
 #$ -q gpu_long.q
 
-./simulator 1 0 input.txt
+../../simulator 1 0 input1.txt
