@@ -7,7 +7,7 @@
 // this also means that other libraries are needed
 //~ #define CIMG_VISUAL
 
-//~ #define SSE_SQRT
+#define SSE_SQRT
 
 #ifdef CIMG_VISUAL
 #include "CImg/CImg.h" // lib for visualisation
@@ -34,8 +34,8 @@
 // ------------- END OF MODIFIED MAPPINGs
 
 // parameters for calculations (movement of particles)
-#define F_QUOC 0.0005 // compensatory quotient for  MAX_WEIGHT
-#define BOUNCE_LOSS 0.8 // conversion rate of velocity on bounce, eg. 0.8 => 80% of speed after bounce
+#define F_QUOC 0.0005f // compensatory quotient for  MAX_WEIGHT
+#define BOUNCE_LOSS 0.8f // conversion rate of velocity on bounce, eg. 0.8 => 80% of speed after bounce
 
 /*
 CURRENT STATE:
@@ -67,6 +67,18 @@ using namespace cimg_library; // -> no need to use cimg_library::function()
 #else
 using namespace std;
 #endif
+
+typedef union
+{
+  __m128 * v;
+  float * f;
+} f4chunk;
+
+typedef union
+{
+  __m128 v;
+  float f [4];
+} f4vector;
 
 bool bounce (float x, float y, float z, SimConfig & sconf) {
 	return (x < 0) || (WIDTH < x) || (y < 0) || (HEIGHT < y) || (z < 0) || (DEPTH < z);
@@ -131,32 +143,59 @@ int main(int argc, char** argv) {
 	srand(time(NULL));
 	
 	// pointers to arrays
-	float * x = sconf.x;
-	float * y = sconf.y;
-	float * z = sconf.z;
+	f4chunk x, y, z, m, vx, vy, vz, xnew, ynew, znew;
+	x.f = sconf.x;
+	y.f = sconf.y;
+	z.f = sconf.z;
+	//~ float * x = sconf.x;
+	//~ float * y = sconf.y;
+	//~ float * z = sconf.z;
 	
-	float * m = sconf.m;
+	m.f = sconf.m;
+	//~ float * m = sconf.m;
 	
-	float * vx = sconf.vx;
-	float * vy = sconf.vy;
-	float * vz = sconf.vz;
+	vx.f = sconf.vx;
+	vy.f = sconf.vy;
+	vz.f = sconf.vz;
+	//~ float * vx = sconf.vx;
+	//~ float * vy = sconf.vy;
+	//~ float * vz = sconf.vz;
 	
-	float * xnew = new float[sconf.amount];
-	float * ynew = new float[sconf.amount];
-	float * znew = new float[sconf.amount];
+	xnew.f = new float[sconf.amount];
+	ynew.f = new float[sconf.amount];
+	znew.f = new float[sconf.amount];
+	//~ float * xnew = new float[sconf.amount];
+	//~ float * ynew = new float[sconf.amount];
+	//~ float * znew = new float[sconf.amount];
 	
 	// variables used in computations
-	float ax, ay, az;
-	float dx, dy, dz;
-	float invr, invr3;
-	float f;
+	f4vector ax, ay, az;
+	f4vector dx, dy, dz;
+	f4vector invr, invr3;
+	f4vector f;
+	f4vector f_q;
+	f_q.f[0] = f_q.f[1] = f_q.f[2] = f_q.f[3] = F_QUOC;
+	//~ float ax, ay, az;
+	//~ float dx, dy, dz;
+	//~ float invr, invr3;
+	//~ float f;
 	
 	// definitino of "n" - used in algorithm on site
 	int n = sconf.amount;
 	
 	// constants for computing particle movement 
-	float dt = 0.1; // original value was 0.0001, that was too little for current values of particle parameters 
-	float eps = 0.005;
+	f4vector dt; // original value was 0.0001, that was too little for current values of particle parameters 
+	dt.f[0] = 0.1f; // original value was 0.0001, that was too little for current values of particle parameters 
+	dt.f[1] = 0.1f; // original value was 0.0001, that was too little for current values of particle parameters 
+	dt.f[2] = 0.1f; // original value was 0.0001, that was too little for current values of particle parameters 
+	dt.f[3] = 0.1f; // original value was 0.0001, that was too little for current values of particle parameters 
+	//~ float dt = 0.1; // original value was 0.0001, that was too little for current values of particle parameters 
+	f4vector eps;
+	eps.f[0] = 0.005f;
+	eps.f[1] = 0.005f;
+	eps.f[2] = 0.005f;
+	eps.f[3] = 0.005f;
+	//~ float eps = 0.005;
 	
 	#ifdef CIMG_VISUAL
 	// image ~ "drawing panel"
@@ -174,8 +213,8 @@ int main(int argc, char** argv) {
 	
 		// draw all points
 		for(i = 0; i < n; i++) {
-			const unsigned char color[] = {(unsigned char) (m[i]/SQRT_MAX_WEIGHT), 255, (unsigned char) (((int) m[i])%SQRT_MAX_WEIGHT)};
-			img.draw_point(x[i],y[i],color);
+			const unsigned char color[] = {(unsigned char) (m.f[i]/SQRT_MAX_WEIGHT), 255, (unsigned char) (((int) m.f[i])%SQRT_MAX_WEIGHT)};
+			img.draw_point(x.f[i],y.f[i],color);
 		}
 		// create a Window (caption Playground) and fill it with image	
 		main_disp = CImgDisplay(img,"Playground");
@@ -191,53 +230,77 @@ int main(int argc, char** argv) {
 		
 		// compute new coordinates of all particles in parallel
 		#ifdef PARALLEL_OPENMP
-		#pragma omp parallel for num_threads(threads) private(ax,ay,az,dx,dy,dz,invr,invr3,f)
+		#pragma omp parallel for num_threads(threads) private(ax,ay,az,dx,dy,dz,invr,invr3,f,j)
 		#endif
 		for(i=0; i<n; i++) { /* Foreach particle "i" ... */
-			ax=0.0;
-			ay=0.0;
-			az=0.0;
-			
+			ax.f[0]=0.0f;
+			ax.f[1]=0.0f;
+			ax.f[2]=0.0f;
+			ax.f[3]=0.0f;
+			ay.f[0]=0.0f;
+			ay.f[1]=0.0f;
+			ay.f[2]=0.0f;
+			ay.f[3]=0.0f;
+			az.f[0]=0.0f;
+			az.f[1]=0.0f;
+			az.f[2]=0.0f;
+			az.f[3]=0.0f;
+
+			f4vector tmp_x, tmp_y, tmp_z;
+			tmp_x.f[0] = tmp_x.f[1] = tmp_x.f[2] = tmp_x.f[3] = x.f[i];
+			tmp_y.f[0] = tmp_y.f[1] = tmp_y.f[2] = tmp_y.f[3] = y.f[i];
+			tmp_z.f[0] = tmp_z.f[1] = tmp_z.f[2] = tmp_z.f[3] = z.f[i];
 			// reduction = parallel reduction of accelerations ax, ay, az
-			#ifdef PARALLEL_OPENMP
-			#pragma omp parallel for num_threads(threads) private(dx,dy,dz,invr,invr3,f) reduction(+:ax,ay,az)
-			#endif
-			for(j=0; j<n; j++) { /* Loop over all particles "j" */
-				dx=x[j]-x[i];
-				dy=y[j]-y[i];
-				dz=z[j]-z[i];
+			//~ #ifdef PARALLEL_OPENMP
+			//~ #pragma omp parallel for num_threads(threads) private(dx,dy,dz,invr,invr3,f) reduction(+:ax,ay,az)
+			//~ #endif
+			for(j=0; j<n/4; j++) { /* Loop over all particles "j" */
+				dx.v=x.v[j]-tmp_x.v;
+				dy.v=y.v[j]-tmp_y.v;
+				dz.v=z.v[j]-tmp_z.v;
+
+				//~ dx=x[j]-x[i];
+				//~ dy=y[j]-y[i];
+				//~ dz=z[j]-z[i];
 				
-				#ifdef SSE_SQRT
-				float tmp_sum = dx*dx + dy*dy + dz*dz + eps;
-				SSERsqrt(&invr, &tmp_sum);
-				#else
-				invr = 1.0/sqrtf(dx*dx + dy*dy + dz*dz + eps);
-				#endif
+				invr.v = _mm_rsqrt_ps(dx.v*dx.v + dy.v*dy.v + dz.v*dz.v + eps.v);
 				
-				invr3 = invr*invr*invr;
-				f=F_QUOC*m[j]*invr3;
-				ax += f*dx; /* accumulate the acceleration from gravitational attraction */
-				ay += f*dy;
-				az += f*dz;
+				
+				//~ #ifdef SSE_SQRT
+				//~ float tmp_sum = dx*dx + dy*dy + dz*dz + eps;
+				//~ SSERsqrt(&invr, &tmp_sum);
+				//~ #else
+				//~ invr = 1.0/sqrtf(dx*dx + dy*dy + dz*dz + eps);
+				//~ #endif
+				
+				invr3.v = invr.v*invr.v*invr.v;
+				//~ invr3 = invr*invr*invr;
+				f.v = f_q.v * m.v[j] * invr3.v;
+				ax.v += f.v*dx.v; /* accumulate the acceleration from gravitational attraction */
+				ay.v += f.v*dy.v;
+				az.v += f.v*dz.v;
 			}
 			
-			vx[i] += dt*ax; /* update velocity of particle "i" */
-			vy[i] += dt*ay;
-			vz[i] += dt*az;
+			float tmp_ax = (ax.f[0] + ax.f[1] + ax.f[2] + ax.f[3]);
+			float tmp_ay = (ay.f[0] + ay.f[1] + ay.f[2] + ay.f[3]);
+			float tmp_az = (az.f[0] + az.f[1] + az.f[2] + az.f[3]);
+			vx.f[i] += dt.f[0]*tmp_ax; /* update velocity of particle "i" */
+			vy.f[i] += dt.f[0]*tmp_ay; /* update velocity of particle "i" */
+			vz.f[i] += dt.f[0]*tmp_az; /* update velocity of particle "i" */
 			
-			xnew[i] = x[i] + dt*vx[i] + 0.5*dt*dt*ax; /* update position of particle "i" */
-			ynew[i] = y[i] + dt*vy[i] + 0.5*dt*dt*ay;
-			znew[i] = z[i] + dt*vz[i] + 0.5*dt*dt*az;
+			xnew.f[i] = x.f[i] + dt.f[0]*vx.f[i] + 0.5f*dt.f[0]*dt.f[0]*tmp_ax; /* update position of particle "i" */
+			ynew.f[i] = y.f[i] + dt.f[0]*vy.f[i] + 0.5f*dt.f[0]*dt.f[0]*tmp_ay; /* update position of particle "i" */
+			znew.f[i] = z.f[i] + dt.f[0]*vz.f[i] + 0.5f*dt.f[0]*dt.f[0]*tmp_az; /* update position of particle "i" */
 			
-			if( bounce(xnew[i], ynew[i], znew[i], sconf) ) {
+			if( bounce(xnew.f[i], ynew.f[i], znew.f[i], sconf) ) {
 				// update of particle velocity, change direction and value (BOUNCE_LOSS)
-				vx[i] = debounce_vel(vx[i], xnew[i], 0, WIDTH);
-				vy[i] = debounce_vel(vy[i], ynew[i], 0, HEIGHT);
-				vz[i] = debounce_vel(vz[i], znew[i], 0, DEPTH);
+				vx.f[i] = debounce_vel(vx.f[i], xnew.f[i], 0, WIDTH);
+				vy.f[i] = debounce_vel(vy.f[i], ynew.f[i], 0, HEIGHT);
+				vz.f[i] = debounce_vel(vz.f[i], znew.f[i], 0, DEPTH);
 				// update of particle position
-				xnew[i] = debounce_pos(xnew[i], 0, WIDTH);
-				ynew[i] = debounce_pos(ynew[i], 0, HEIGHT);
-				znew[i] = debounce_pos(znew[i], 0, DEPTH);
+				xnew.f[i] = debounce_pos(xnew.f[i], 0, WIDTH);
+				ynew.f[i] = debounce_pos(ynew.f[i], 0, HEIGHT);
+				znew.f[i] = debounce_pos(znew.f[i], 0, DEPTH);
 			}
 		}
 		
@@ -246,9 +309,9 @@ int main(int argc, char** argv) {
 			if(main_disp.is_closed()) break;
 			
 			for(i = 0; i < n; i++) {
-				const unsigned char color[] = {(unsigned char) (m[i]/SQRT_MAX_WEIGHT), 255, (unsigned char) (((int) m[i])%SQRT_MAX_WEIGHT)};
-				img.draw_circle(x[i],y[i],1,color);
-				//~ img.draw_circle(x[i],y[i],2,green);
+				const unsigned char color[] = {(unsigned char) (m.f[i]/SQRT_MAX_WEIGHT), 255, (unsigned char) (((int) m.f[i])%SQRT_MAX_WEIGHT)};
+				img.draw_circle(x.f[i],y.f[i],1,color);
+				//~ img.draw_circle(x.f[i],y.f[i],2,green);
 			}
 		}
 		#endif
@@ -258,12 +321,12 @@ int main(int argc, char** argv) {
 		#pragma omp parallel for num_threads(threads)
 		#endif
 		for(i=0; i<n; i++) { /* copy updated positions back into original arrays */
-			if( bounce(xnew[i], ynew[i], znew[i], sconf) ) {
-				printf("Particle %d out of borders (x, y, z) = (%0.3f, %0.3f, %0.3f)\n", i, xnew[i], ynew[i], znew[i]);
+			if( bounce(xnew.f[i], ynew.f[i], znew.f[i], sconf) ) {
+				printf("Particle %d out of borders (x, y, z) = (%0.3f, %0.3f, %0.3f)\n", i, xnew.f[i], ynew.f[i], znew.f[i]);
 			}
-			x[i] = xnew[i];
-			y[i] = ynew[i];
-			z[i] = znew[i];
+			x.f[i] = xnew.f[i];
+			y.f[i] = ynew.f[i];
+			z.f[i] = znew.f[i];
 		}
 			
 		#ifdef CIMG_VISUAL
@@ -275,9 +338,9 @@ int main(int argc, char** argv) {
 	
 			// draw all particles
 			for(i = 0; i < n; i++) {
-				//~ const unsigned char color[] = {(unsigned char) (m[i]/SQRT_MAX_WEIGHT), 255, (unsigned char) (((int) m[i])%SQRT_MAX_WEIGHT)};
-				img.draw_circle(x[i],y[i],1,red);
-				//~ img.draw_circle(x[i],y[i],2,green);
+				//~ const unsigned char color[] = {(unsigned char) (m.f[i]/SQRT_MAX_WEIGHT), 255, (unsigned char) (((int) m.f[i])%SQRT_MAX_WEIGHT)};
+				img.draw_circle(x.f[i],y.f[i],1,red);
+				//~ img.draw_circle(x.f[i],y.f[i],2,green);
 			}
 			// display the image in window	
 			img.display(main_disp);
@@ -287,7 +350,7 @@ int main(int argc, char** argv) {
 		}
 		#endif
 		if(100*steps % sconf.simulation_steps == 0) {
-			printf("%.1f%% completed\n", 100.0*steps/sconf.simulation_steps);
+			printf("%.1f%% completed\n", 100.0*steps/((int)sconf.simulation_steps));
 		}
 		steps++;
 	}
@@ -296,9 +359,9 @@ int main(int argc, char** argv) {
 	
 	printf("Time: %f seconds\n",(t2-t1));
 	
-	delete [] xnew;
-	delete [] ynew;
-	delete [] znew;	
+	delete [] xnew.f;
+	delete [] ynew.f;
+	delete [] znew.f;	
 
 	return 0;
 }

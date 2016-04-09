@@ -7,7 +7,7 @@
 // this also means that other libraries are needed
 //~ #define CIMG_VISUAL
 
-//~ #define SSE_SQRT
+#define SSE_SQRT
 
 #ifdef CIMG_VISUAL
 #include "CImg/CImg.h" // lib for visualisation
