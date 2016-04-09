@@ -22,7 +22,7 @@
 #$ -e .
 
 # The path used for the standard output stream of the job.
-#$ -o .
+#$ -o ./sse_fast2.txt
 
 # Do not change.
 #$ -pe ompi 1
@@ -30,4 +30,4 @@
 # Do not change.
 #$ -q gpu_long.q
 
-./simulator 1 0 input.txt
+../../simulator_sse_fast $1 0 ../../input2.txt
