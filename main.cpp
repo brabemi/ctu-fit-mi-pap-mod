@@ -5,7 +5,9 @@
 
 // if the following variable is NOT defined, program will not use any function nor include the CImg library
 // this also means that other libraries are needed
-#define CIMG_VISUAL
+//~ #define CIMG_VISUAL
+
+#define SSE_SQRT
 
 #ifdef CIMG_VISUAL
 #include "CImg/CImg.h" // lib for visualisation
@@ -99,13 +101,18 @@ int main(int argc, char** argv) {
 	// simulation configuration
 	SimConfig sconf;
 	int threads;
+
+	#ifdef CIMG_VISUAL
 	bool graphics;
+	#endif
 
 	// process input
 	if(argc == 4)
 	{
 		threads = atoi(argv[1]);
+		#ifdef CIMG_VISUAL
 		graphics = atoi(argv[2]) == 1;
+		#endif
 		printf("Processing input file %s\n", argv[3]);
 		processInputFile(argv[3], sconf);
 	}
@@ -199,9 +206,14 @@ int main(int argc, char** argv) {
 				dx=x[j]-x[i];
 				dy=y[j]-y[i];
 				dz=z[j]-z[i];
+				
+				#ifdef SSE_SQRT
+				float tmp_sum = dx*dx + dy*dy + dz*dz + eps;
+				SSERsqrt(&invr, &tmp_sum);
+				#else
 				invr = 1.0/sqrtf(dx*dx + dy*dy + dz*dz + eps);
-				//~ float tmp_sum = dx*dx + dy*dy + dz*dz + eps;
-				//~ SSERsqrt(&invr, &tmp_sum);
+				#endif
+				
 				invr3 = invr*invr*invr;
 				f=F_QUOC*m[j]*invr3;
 				ax += f*dx; /* accumulate the acceleration from gravitational attraction */

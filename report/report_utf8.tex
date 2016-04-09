@@ -1,0 +1,92 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[czech]{babel}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{url}
+\usepackage{graphicx}
+
+\begin{document}
+
+\begin{center}
+\bf Semestrální projekt MI-PAP 2015/2016:\\[5mm]
+    Modelování částic\\[5mm]
+       Miroslav Brabenec\\
+       Jan Nováček\\[2mm]
+magisterské studium, FIT ČVUT, Thákurova 9, 160 00 Praha 6\\[2mm]
+\today
+\end{center}
+%
+%
+%
+% Co má být ve zprávě: https://edux.fit.cvut.cz/courses/MI-PAP/labs/technicka_zprava
+%
+%
+\section{Definice problému, popis sekvenčního algoritmu a jeho implementace}
+
+\subsection{Definice problému}
+Implementujte tento algoritmus (viz \url{http://www.browndeertechnology.com/docs/BDT_OpenCL_Tutorial_NBody-rev3.html#algorithm}) a upravte ho takto:
+
+\begin{enumerate}
+\item	částice při nárazu provedou pružný odraz a
+\item	každá částice má svůj náboj
+\end{enumerate}
+
+Úkol: doplňte o možnost vizualizace (alespoň exportem dat v daných časových okamžicích ve formátu vhodném pro vizualizaci v nástroji třetích stran např. ) 
+
+\subsection{Popis sekvenčního algoritmu}
+Simulátor načte nastavení simulace a počáteční umístění částic ze vstupního souboru, z toho nainicializuje hodnoty a spustí simulaci.
+
+Simulace běží, dokud ...
+
+\subsection{Sekvenční implementace}
+
+\begin{center}
+\begin{tabular}{c | c | c}
+\textbf{Počet částic} & \textbf{Počet kroků sim.}  & \textbf{Naměřený čas} \\ \hline \hline
+XX & YY & ZZ s \\ \hline
+\end{tabular}
+\captionof{table}{Časy sekvenčního řešení}
+\end{center}
+
+
+\section{Popis paralelního algoritmu a jeho implementace v OpenMP}
+
+    Popis případných úprav algoritmu a jeho implementace, včetně volby datových struktur
+
+    Zda byla využita vektorizace (popř. proč jí nemožno využít)
+
+    Popis optimalizací pro dosažení lineárního zrychlení
+
+    Tabulkově a případně graficky zpracované naměřené hodnoty časové složitosti měřených instancí běhu (optimalizované implementace) programu s popisem instancí dat
+
+    Analýza a hodnocení vlastností dané implementace programu.
+
+\section{Naměřené výsledky a vyhodnocení pro OpenMP}
+
+\subsection{1. měření}
+První měření bylo prováděno na vstupních datech velikosti XX částic a YY kroků simulace.
+
+\begin{center}
+\begin{tabular}{ c | c }
+\textbf{Počet procesorů} & \textbf{Naměřený čas} \\ \hline \hline 
+1 & ... s \\ \hline
+2 & ... s \\ \hline
+4 & ... s \\ \hline
+8 & ... s \\ \hline
+12 & ... s \\ \hline
+24 & ... s \\ \hline
+\end{tabular}
+\captionof{table}{Časy 1. měření}
+\end{center}
+
+\begin{figure}[h]
+  \begin{center}
+    %~ \includegraphics[width=12cm]{images/mereni1.jpg}
+    \caption{Paralelní zrychlení 1. měření} 
+  \end{center}
+\end{figure}
+
+Při prvním měření jsme dosáhli ...
+
+\end{document}
