@@ -5,6 +5,8 @@
 #include <fstream> // file
 #include <sstream> // stringstream
 
+#include <cmath> // sqrt
+
 using namespace std;
 
 //#define DEBUG_INPUT // debug output (to cout) of input process function
@@ -152,6 +154,78 @@ int createOutputFile(const char * outputFilename, SimConfig & sconf)
 	return 0;
 }
 
+
+/**
+ * Create output for gnuplot.
+ * outputFilename = name of file with code for gnuplot
+ * outputDataFilename = name of file with data about particles, used by gnuplot during generation of graph
+ * sconf = information about simulation, e.g. XYZ sizes, particles, etc.
+ * */
+int createGnuplotFile(const char * outputFilename, const char * outputDataFilename, SimConfig & sconf)
+{
+	// open file
+	ofstream outputFile(outputFilename, ios::out);
+	
+	// check if the file is opened
+	if(!outputFile.is_open())
+	{
+		cout << "ERROR: Could not open the output file for GNUplot." << endl;
+		return 0;
+	}
+	
+	// basic info
+	string gnuplotHeader = 
+	"set encoding iso_8859_15\n"
+	"set term png\n"
+	"set output \"";
+	gnuplotHeader += outputFilename;
+	gnuplotHeader += ".png\"\n";
+	
+	// plot settings - labes, grids, keys
+	string plotSettings =
+	"set grid\n"
+	"unset key\n"
+	"set title \"Simulation\"\n"
+	"set xlabel \"X-axis\"\n"
+	"set ylabel \"Y-axis\"\n"
+	"set zlabel \"Z-axis\"\n";
+	
+	outputFile << gnuplotHeader << '\n' << plotSettings << '\n';
+	
+	// margins
+	outputFile << "set lmargin 5\nset rmargin 3\nset bmargin 3\nset tmargin 3\n\n";
+	
+	// ranges setup
+	outputFile << "set xrange [0:" << (sconf.width) << "]\nset yrange [0:" << (sconf.height) << "]\nset zrange [0:" << (sconf.depth) << "]\n";
+	
+	// particles with variable colour
+	string rgbFunction = "rgb(r,g,b) = 65536 * int(r) + 256 * int(g) + int(b)";
+	
+	string plot = "splot \"";
+	plot += outputDataFilename;
+	plot += "\" using 1:2:3:(rgb($4,$5,$6)) with points pointtype 13 linecolor rgb variable";
+	
+	outputFile << '\n' << rgbFunction << '\n' << plot;
+	
+	// create data file - one particle per one line
+	ofstream outputDataFile(outputDataFilename, ios::out);
+
+	for(int i = 0; i < sconf.amount; i++)
+	{
+		// colour info in RGB model
+		int red = sconf.m[i] / ((int)sqrt(sconf.max_weight));
+		int green = 255;
+		int blue = (((int) sconf.m[i])%((int)sqrt(sconf.max_weight)));
+		// particle coordinates and RGB colour (line: X Y Z R G B\n)
+		outputDataFile << sconf.x[i] << ' ' << sconf.y[i] << ' ' << sconf.z[i] << 
+		' ' << red << ' ' << green << ' ' << blue <<  '\n';
+	}
+	
+	outputFile.close();	
+	outputDataFile.close();
+	
+	return 0;
+}
 
 #ifdef DEBUG_TEST_IO
 int main(int argc, char **argv)
