@@ -1,6 +1,6 @@
 #include <iostream>
 
-#define PARALLEL_OPENMP //< define for OpenMP, undefine for sequential
+//~ #define PARALLEL_OPENMP //< define for OpenMP, undefine for sequential
 #include <omp.h> // OpenMP library
 
 // if the following variable is NOT defined, program will not use any function nor include the CImg library
@@ -9,6 +9,9 @@
 
 //~ #define SSE_SQRT
 
+#define LOGGING // all logging output except for the line with "#THREADS #SECONDS" info
+#undef LOGGING
+
 #ifdef CIMG_VISUAL
 #include "CImg/CImg.h" // lib for visualisation
 #endif
@@ -16,9 +19,6 @@
 #include <cstdlib> // srand
 #include <cmath> // sqrt
 #include <xmmintrin.h> //SSERsqrt
-
-#define LOGGING // all logging output except for the line with "#THREADS #SECONDS" info
-#undef LOGGING
 
 // include our functions/structs
 #include "generator/ioproc.h" // process input file
