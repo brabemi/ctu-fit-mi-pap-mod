@@ -5,6 +5,8 @@
 \usepackage{caption}
 \usepackage{url}
 \usepackage{graphicx}
+\usepackage{footnote}
+\makesavenoteenv{tabular}
 
 \begin{document}
 
@@ -45,15 +47,15 @@ Bylo implementováno několik sekvenčních variant, lišících se v míře ru�
 
 První varianta (V1) používá pouze automatickou vektorizaci (přepínač -O3), nepoužívala žádné SSE instrukce ani ručně vytvořené vektory.
 
-V druhě variantě (V2) je automatická vektorizace (-O3) a SSE instrukce.
+V druhě variantě (V2) je automatická vektorizace (-O3) a SSE instrukce pro výpočet ${\frac{1}{\sqrt{x}}}$.
 
-V třetí variantě (V3) je ....
+V třetí variantě (V3) je automatická vektorizace (-O3), SSE datové typy~\_\_m128 a SSE instrukce pro výpočet ${\frac{1}{\sqrt{x}}}$.
 
 Porovnání rychlostí jednotlivých sekvenčích implementací je v tabulce níže.
 
 \begin{center}
 \begin{tabular}{c | c | c | c | c}
-\textbf{Počet částic} & \textbf{Počet kroků sim.}  & \textbf{V1} & \textbf{V2} & \textbf{V2} \\ \hline \hline
+\textbf{Počet částic} & \textbf{Počet kroků sim.}  & \textbf{V1} & \textbf{V2} & \textbf{V3} \\ \hline \hline
 1024 & 50 000 & 760.19s & 574.16s & 101.88s \\ \hline
 512 & 400 000 & 1526.06s & 1198.62s & 206.92s \\ \hline
 4096 & 5 000 & 1215.77s & 887.54s & 160.28s \\ \hline
@@ -72,6 +74,30 @@ Porovnání rychlostí jednotlivých sekvenčích implementací je v tabulce ní
     Tabulkově a případně graficky zpracované naměřené hodnoty časové složitosti měřených instancí běhu (optimalizované implementace) programu s popisem instancí dat
 
     Analýza a hodnocení vlastností dané implementace programu.
+
+\subsection{Vektorizace}
+
+V programu byla nejprve použita automatická vektorizace (-O3). Její výsledek měl na rychlost výpočtu minimální vliv. Za nejkritičtější část kódu byla vyhodnocena část, kde se počítá ${\frac{1}{\sqrt{x}}}$. Pro tento úsek kódu lze využít speciální vektorové instrukce. Použitím této instrukce došlo ke znatelnému zrychlení výpočtu.
+V další fázi byl kód upraven, tak aby bylo možné využít vektorové instrukce které dokáží počítat paralelně několik hodnot ${\frac{1}{\sqrt{x}}}$. Zde byly částice rozděleny do chunků po 4 a v každém kroku se počítá ovlivnění částice chunkem částic. Díky tomu je možné počítat 4 inverzní odmocniny naráz a dochází k rapidnímu zrychlení. 
+
+\subsection{Optimalizace}
+
+Pro vektorizaci byly využity technologie obsažené v SSE2. Dalšího zrychlená by bylo možno dosáhnout při použití novějších vektorových instrukcí. Ty by měly umožňovat tvorbu chunků o velikosti 8, případně 16.
+Dále by také bylo možno upravit kód, tak aby docházelo k počítání vzdálenosti mezi částicemi pouze jednou. Momentálně se počítá vzdálenost mezi částicemi A a B dvakrát, jednou z pohledu částice A a jednou z pohledu částice B.
+
+\subsection{Vstupní data}
+
+Pro měření jsme vytvořili 3 vzorky dat. Vzorky dat se lišily v počtu částic a počtu kroků simulace. Všechny vzorky byly srovnatelné co se týče výpočetní náročnosti. Výpočetní náročnost lze spočítat jako ${N = P^2 \times S}$, kde P = počet částic a S = počet kroků. Efektivita paralelního výpočtu se zlepšuje s rostoucím počtem částic.
+
+\begin{center}
+\begin{tabular}{c | c | c }
+\textbf{Počet částic} & \textbf{Počet kroků sim.}  & \textbf{Výpočetní náročnost}\footnote{Spočítáno podle vzorce ${\frac{P^2 \times S}{10^9}}$, kde P = počet částic a S = počet kroků} \\ \hline \hline
+1024 & 50 000 & 52,428 \\ \hline
+512 & 400 000 & 104,857 \\ \hline
+4096 & 5 000 & 83,804 \\ \hline
+\end{tabular}
+\captionof{table}{Časy sekvenčních implementací}
+\end{center}
 
 \section{Naměřené výsledky a vyhodnocení pro OpenMP}
 
