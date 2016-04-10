@@ -8,6 +8,8 @@
 \usepackage{footnote}
 \makesavenoteenv{tabular}
 
+\usepackage{float}
+
 \begin{document}
 
 \begin{center}
@@ -37,19 +39,21 @@ Implementujte tento algoritmus (viz \url{http://www.browndeertechnology.com/docs
 Úkol: doplňte o možnost vizualizace (alespoň exportem dat v daných časových okamžicích ve formátu vhodném pro vizualizaci v nástroji třetích stran např. ) 
 
 \subsection{Popis sekvenčního algoritmu}
-Simulátor načte nastavení simulace a počáteční umístění částic ze vstupního souboru, z toho nainicializuje hodnoty a spustí simulaci.
+Simulátor načte nastavení simulace ze vstupního souboru, z toho nainicializuje hodnoty a spustí simulaci.
 
-Simulace běží, dokud ...
+V každém kroku simulace se vypočítává nová pozice každé částice, nová pozice záleží na rychlosti dané částice a také na vlivu ostatních částic na tuto částici.
+
+Simulace končí po provedení zadaného počtu kroků.
 
 \subsection{Sekvenční implementace}
 
 Bylo implementováno několik sekvenčních variant, lišících se v míře ruční vektorizace struktur použitých v algoritmu.
 
-První varianta (V1) používá pouze automatickou vektorizaci (přepínač -O3), nepoužívala žádné SSE instrukce ani ručně vytvořené vektory.
+První varianta (V1) používá pouze automatickou vektorizaci (přepínač -O3), nepoužívá žádné SSE instrukce ani ručně vytvořené vektory.
 
-V druhě variantě (V2) je automatická vektorizace (-O3) a SSE instrukce pro výpočet ${\frac{1}{\sqrt{x}}}$.
+V druhé variantě (V2) je automatická vektorizace (-O3) a SSE instrukce pro výpočet ${\frac{1}{\sqrt{x}}}$.
 
-V třetí variantě (V3) je automatická vektorizace (-O3), SSE datové typy~\_\_m128 a SSE instrukce pro výpočet ${\frac{1}{\sqrt{x}}}$.
+Ve třetí variantě (V3) je automatická vektorizace (-O3), SSE datové typy~\_\_m128 a SSE in\-struk\-ce pro výpočet ${\frac{1}{\sqrt{x}}}$.
 
 Porovnání rychlostí jednotlivých sekvenčích implementací je v tabulce níže.
 
@@ -63,31 +67,34 @@ Porovnání rychlostí jednotlivých sekvenčích implementací je v tabulce ní
 \captionof{table}{Časy sekvenčních implementací}
 \end{center}
 
+
 \section{Popis paralelního algoritmu a jeho implementace v OpenMP}
+%Popis případných úprav algoritmu a jeho implementace, včetně volby datových struktur
+Paralelizace algoritmu proběhla tak, že se v každém kroku simulace rozdělí částice mezi zadaný počet vláken, paralelně se tedy počítají nové pozice částic.
+Rozdělení částic mezi vlákna bylo ponecháno na OpenMP.
 
-    Popis případných úprav algoritmu a jeho implementace, včetně volby datových struktur
-
-    Zda byla využita vektorizace (popř. proč jí nemožno využít)
-
-    Popis optimalizací pro dosažení lineárního zrychlení
-
-    Tabulkově a případně graficky zpracované naměřené hodnoty časové složitosti měřených instancí běhu (optimalizované implementace) programu s popisem instancí dat
-
-    Analýza a hodnocení vlastností dané implementace programu.
-
+% Zda byla využita vektorizace (popř. proč jí nemožno využít)
 \subsection{Vektorizace}
 
-V programu byla nejprve použita automatická vektorizace (-O3). Její výsledek měl na rychlost výpočtu minimální vliv. Za nejkritičtější část kódu byla vyhodnocena část, kde se počítá ${\frac{1}{\sqrt{x}}}$. Pro tento úsek kódu lze využít speciální vektorové instrukce. Použitím této instrukce došlo ke znatelnému zrychlení výpočtu.
-V další fázi byl kód upraven, tak aby bylo možné využít vektorové instrukce které dokáží počítat paralelně několik hodnot ${\frac{1}{\sqrt{x}}}$. Zde byly částice rozděleny do chunků po 4 a v každém kroku se počítá ovlivnění částice chunkem částic. Díky tomu je možné počítat 4 inverzní odmocniny naráz a dochází k rapidnímu zrychlení. 
+V prog\-ramu byla nej\-prve pou\-žita au\-toma\-tická vekto\-ri\-za\-ce (-O3).
+Její výsledek měl na rychlost výpočtu minimální vliv. Za nejkritičtější část kódu byla vyhodnocena část, kde se počítá ${\frac{1}{\sqrt{x}}}$.
+Pro tento úsek kódu lze využít speciální vektorové instrukce. Použitím této instrukce došlo ke znatelnému zrychlení výpočtu.
+V další fázi byl kód upraven, tak aby bylo možné využít vektorové instrukce které dokáží počítat paralelně několik hodnot ${\frac{1}{\sqrt{x}}}$.
+Zde byly částice rozděleny do chunků po 4 a v každém kroku se počítá ovlivnění částice chunkem částic.
+Díky tomu je možné počítat 4 inverzní odmocniny naráz a dochází k rapidnímu zrychlení. 
 
+% Popis optimalizací pro dosažení lineárního zrychlení
 \subsection{Optimalizace}
 
-Pro vektorizaci byly využity technologie obsažené v SSE2. Dalšího zrychlená by bylo možno dosáhnout při použití novějších vektorových instrukcí. Ty by měly umožňovat tvorbu chunků o velikosti 8, případně 16.
-Dále by také bylo možno upravit kód, tak aby docházelo k počítání vzdálenosti mezi částicemi pouze jednou. Momentálně se počítá vzdálenost mezi částicemi A a B dvakrát, jednou z pohledu částice A a jednou z pohledu částice B.
+Pro vektorizaci byly využity technologie obsažené v SSE2. Dalšího zrychlení by bylo možno dosáhnout při použití novějších vektorových instrukcí.
+Ty by měly umožňovat tvorbu chunků o velikosti 8, případně 16.
+Dále by také bylo možno upravit kód, tak aby docházelo k počítání vzdálenosti mezi částicemi pouze jednou.
+Momentálně se počítá vzdálenost mezi částicemi A a B dvakrát, jednou z pohledu částice A a jednou z pohledu částice B.
 
 \subsection{Vstupní data}
-
-Pro měření jsme vytvořili 3 vzorky dat. Vzorky dat se lišily v počtu částic a počtu kroků simulace. Všechny vzorky byly srovnatelné co se týče výpočetní náročnosti. Výpočetní náročnost lze spočítat jako ${N = P^2 \times S}$, kde P = počet částic a S = počet kroků. Efektivita paralelního výpočtu se zlepšuje s rostoucím počtem částic.
+Pro měření jsme vytvořili 3 vzorky dat. Vzorky dat se lišily v počtu částic a počtu kroků simulace.
+Všechny vzorky byly srovnatelné co se týče výpočetní náročnosti. Výpočetní náročnost lze spočítat jako ${N = P^2 \times S}$, kde P = počet částic a S = počet kroků.
+Efektivita paralelního výpočtu se zlepšuje s rostoucím počtem částic.
 
 \begin{center}
 \begin{tabular}{c | c | c }
@@ -99,10 +106,12 @@ Pro měření jsme vytvořili 3 vzorky dat. Vzorky dat se lišily v počtu čás
 \captionof{table}{Časy sekvenčních implementací}
 \end{center}
 
-\section{Naměřené výsledky a vyhodnocení pro OpenMP}
+% Tabulkově a případně graficky zpracované naměřené hodnoty časové složitosti měřených instancí běhu (optimalizované implementace) programu s popisem instancí dat
+\section{Naměřené výsledky a vyhod\-noce\-ní pro O\-pen\-MP}
+K měření výkonu paralelní implementace byla použita stejná zadání, jako pro sekvenční variantu (viz předchozí tabulka).
 
 \subsection{Měření pro variantu 2}
-První měření bylo prováděno na vstupních datech velikosti XX částic a YY kroků simulace.
+Varianta 2 využívá automatická vektorizace (-O3) a SSE instrukce pro výpočet ${\frac{1}{\sqrt{x}}}$.
 
 \begin{center}
 \begin{tabular}{ c | c }
@@ -117,16 +126,12 @@ První měření bylo prováděno na vstupních datech velikosti XX částic a Y
 \captionof{table}{Časy 1. měření}
 \end{center}
 
-\begin{figure}[h]
+\begin{figure}
   \begin{center}
-    %~ \includegraphics[width=12cm]{images/mereni1.jpg}
-    \caption{Paralelní zrychlení 1. měření} 
+     \includegraphics[width=12cm]{images/sse1.png}
+    \caption{Měření 1. instance} 
   \end{center}
 \end{figure}
-
-Při prvním měření ...
-
-
 
 \begin{center}
 \begin{tabular}{ c | c }
@@ -141,15 +146,12 @@ Při prvním měření ...
 \captionof{table}{Časy 2. měření}
 \end{center}
 
-\begin{figure}[h]
+\begin{figure}
   \begin{center}
-    %~ \includegraphics[width=12cm]{images/mereni1.jpg}
-    \caption{Paralelní zrychlení 2. měření} 
+    \includegraphics[width=12cm]{images/sse2.png}
+    \caption{Měření 2. instance} 
   \end{center}
 \end{figure}
-
-
-
 
 \begin{center}
 \begin{tabular}{ c | c }
@@ -164,17 +166,38 @@ Při prvním měření ...
 \captionof{table}{Časy 3. měření}
 \end{center}
 
-\begin{figure}[h]
+\begin{figure}[H]
   \begin{center}
-    %~ \includegraphics[width=12cm]{images/mereni1.jpg}
-    \caption{Paralelní zrychlení 3. měření} 
+     \includegraphics[width=12cm]{images/sse3.png}
+    \caption{Měření 3. instance} 
   \end{center}
 \end{figure}
 
+Z naměřených výsledků lze usoudit, že paralelizace algoritmu zredukuje výpočetní čas znatelně, ovšem lineárního zrychlení dosaženo nebylo, jak je vidět z následujících grafů.
 
+\begin{figure}[H]
+  \begin{center}
+     \includegraphics[width=12cm]{images/sse1acc.png}
+    \caption{Paralelní zrychlení v 1. měření} 
+  \end{center}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+     \includegraphics[width=12cm]{images/sse2acc.png}
+    \caption{Paralelní zrychlení v 2. měření} 
+  \end{center}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{center}
+     \includegraphics[width=12cm]{images/sse3acc.png}
+    \caption{Paralelní zrychlení v 3. měření} 
+  \end{center}
+\end{figure}
 
 \subsection{Měření pro variantu 3}
-První měření bylo prováděno na vstupních datech velikosti XX částic a YY kroků simulace.
+Ve třetí variantě (V3) je automatická vektorizace (-O3), SSE datové typy~\_\_m128 a SSE in\-struk\-ce pro výpočet ${\frac{1}{\sqrt{x}}}$.
 
 \begin{center}
 \begin{tabular}{ c | c }
@@ -191,14 +214,10 @@ První měření bylo prováděno na vstupních datech velikosti XX částic a Y
 
 \begin{figure}[h]
   \begin{center}
-    %~ \includegraphics[width=12cm]{images/mereni1.jpg}
-    \caption{Paralelní zrychlení 1. měření} 
+     \includegraphics[width=12cm]{images/ssef1.png}
+    \caption{Měření 1. instance} 
   \end{center}
 \end{figure}
-
-Při prvním měření ...
-
-
 
 \begin{center}
 \begin{tabular}{ c | c }
@@ -213,15 +232,12 @@ Při prvním měření ...
 \captionof{table}{Časy 2. měření}
 \end{center}
 
-\begin{figure}[h]
+\begin{figure}[t]
   \begin{center}
-    %~ \includegraphics[width=12cm]{images/mereni1.jpg}
-    \caption{Paralelní zrychlení 2. měření} 
+      \includegraphics[width=12cm]{images/ssef2.png}
+    \caption{Měření 2. instance} 
   \end{center}
 \end{figure}
-
-
-
 
 \begin{center}
 \begin{tabular}{ c | c }
@@ -236,14 +252,70 @@ Při prvním měření ...
 \captionof{table}{Časy 3. měření}
 \end{center}
 
-\begin{figure}[h]
+\begin{figure}[t]
   \begin{center}
-    %~ \includegraphics[width=12cm]{images/mereni1.jpg}
-    \caption{Paralelní zrychlení 3. měření} 
+      \includegraphics[width=12cm]{images/ssef3.png}	
+    \caption{Měření 3. instance} 
   \end{center}
 \end{figure}
 
+Naměřené výsledky ukazují, že efektivnější využití více vláken ve variantě č. 3 se projeví zejména při vyšším počtu částic.
 
+\begin{figure}[H]
+  \begin{center}
+     \includegraphics[width=12cm]{images/ssef1acc.png}
+    \caption{Paralelní zrychlení v 1. měření} 
+  \end{center}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{center}
+     \includegraphics[width=12cm]{images/ssef2acc.png}
+    \caption{Paralelní zrychlení v 2. měření} 
+  \end{center}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{center}
+     \includegraphics[width=12cm]{images/ssef3acc.png}
+    \caption{Paralelní zrychlení v 3. měření} 
+  \end{center}
+\end{figure}
+
+% Analýza a hodnocení vlastností dané implementace programu.
+\subsection{Porovnání jednotlivých impelentací}
+První varianta algoritmu, tj. sekvenční s pouze automatickou vektorizací, vyšla jako nejpomalejší ze všech variant.
+
+Vektorizace v dalších dvou variantách přinesla obrovské zrychlení, varianta 2 oproti variantě 1 až 130\%, varianta 3 oproti variantě 1 přibližně 700\% zrychlení.
+
+Spuštění varianty 2 na více vláknech přineslo zrychlení až 13*. Z jednotlivých měření lze usoudit, že zrychlení se zvyšuje s počtem částic.
+
+Spuštění varianty 3 na více vláknech zrychlilo výpočet až 7,6*.
+Bohužel to v některých případech výpočet i zpomalilo, to přisuzujeme příliš malému množství částic v kombinaci s řežií spojenou s vlákny.
+Zrychlení je naopak patrné v měření č. 3, kdy se při větším počtu částic výpočet zrychloval i s přibývajícími vlákny.
+
+Dále je uvedeno několik srovnávacích grafů.
+
+\begin{figure}[h]
+  \begin{center}
+      \includegraphics[width=12cm]{images/vs1.png}	
+    \caption{Porovnání implementací, měření 1} 
+  \end{center}
+\end{figure}
+
+\begin{figure}[h]
+  \begin{center}
+      \includegraphics[width=12cm]{images/vs2.png}	
+    \caption{Porovnání implementací, měření 2}
+  \end{center}
+\end{figure}
+
+\begin{figure}[h]
+  \begin{center}
+      \includegraphics[width=12cm]{images/vs3.png}	
+    \caption{Porovnání implementací, měření 3}
+  \end{center}
+\end{figure}
 
 
 \end{document}
