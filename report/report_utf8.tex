@@ -41,14 +41,25 @@ Simulace běží, dokud ...
 
 \subsection{Sekvenční implementace}
 
-\begin{center}
-\begin{tabular}{c | c | c}
-\textbf{Počet částic} & \textbf{Počet kroků sim.}  & \textbf{Naměřený čas} \\ \hline \hline
-XX & YY & ZZ s \\ \hline
-\end{tabular}
-\captionof{table}{Časy sekvenčního řešení}
-\end{center}
+Bylo implementováno několik sekvenčních variant, lišících se v míře ruční vektorizace struktur použitých v algoritmu.
 
+První varianta (V1) používá pouze automatickou vektorizaci (přepínač -O3), nepoužívala žádné SSE instrukce ani ručně vytvořené vektory.
+
+V druhě variantě (V2) je automatická vektorizace (-O3) a SSE instrukce.
+
+V třetí variantě (V3) je ....
+
+Porovnání rychlostí jednotlivých sekvenčích implementací je v tabulce níže.
+
+\begin{center}
+\begin{tabular}{c | c | c | c | c}
+\textbf{Počet částic} & \textbf{Počet kroků sim.}  & \textbf{V1} & \textbf{V2} & \textbf{V2} \\ \hline \hline
+1024 & 50 000 & 760.19s & 574.16s & 101.88s \\ \hline
+512 & 400 000 & 1526.06s & 1198.62s & 206.92s \\ \hline
+4096 & 5 000 & 1215.77s & 887.54s & 160.28s \\ \hline
+\end{tabular}
+\captionof{table}{Časy sekvenčních implementací}
+\end{center}
 
 \section{Popis paralelního algoritmu a jeho implementace v OpenMP}
 
@@ -64,18 +75,18 @@ XX & YY & ZZ s \\ \hline
 
 \section{Naměřené výsledky a vyhodnocení pro OpenMP}
 
-\subsection{1. měření}
+\subsection{Měření pro variantu 2}
 První měření bylo prováděno na vstupních datech velikosti XX částic a YY kroků simulace.
 
 \begin{center}
 \begin{tabular}{ c | c }
-\textbf{Počet procesorů} & \textbf{Naměřený čas} \\ \hline \hline 
-1 & ... s \\ \hline
-2 & ... s \\ \hline
-4 & ... s \\ \hline
-8 & ... s \\ \hline
-12 & ... s \\ \hline
-24 & ... s \\ \hline
+\textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
+1 & 574.160156s \\ \hline
+2 & 342.273438s \\ \hline
+4 & 182.601562s \\ \hline
+8 & 128.050781s \\ \hline
+16 & 94.910156s \\ \hline
+24 & 92.789062s \\ \hline
 \end{tabular}
 \captionof{table}{Časy 1. měření}
 \end{center}
@@ -87,6 +98,126 @@ První měření bylo prováděno na vstupních datech velikosti XX částic a Y
   \end{center}
 \end{figure}
 
-Při prvním měření jsme dosáhli ...
+Při prvním měření ...
+
+
+
+\begin{center}
+\begin{tabular}{ c | c }
+\textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
+1 & 1198.617188s \\ \hline
+2 & 758.753906s \\ \hline
+4 & 480.691406s \\ \hline
+8 & 439.945312s \\ \hline
+16 & 426.421875s \\ \hline
+24 & 446.625000s \\ \hline
+\end{tabular}
+\captionof{table}{Časy 2. měření}
+\end{center}
+
+\begin{figure}[h]
+  \begin{center}
+    %~ \includegraphics[width=12cm]{images/mereni1.jpg}
+    \caption{Paralelní zrychlení 2. měření} 
+  \end{center}
+\end{figure}
+
+
+
+
+\begin{center}
+\begin{tabular}{ c | c }
+\textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
+1 & 887.542969s \\ \hline
+2 & 452.800781s \\ \hline
+4 & 225.554688s \\ \hline
+8 & 117.988281s \\ \hline
+16 & 99.117188s \\ \hline
+24 & 67.757812s \\ \hline
+\end{tabular}
+\captionof{table}{Časy 3. měření}
+\end{center}
+
+\begin{figure}[h]
+  \begin{center}
+    %~ \includegraphics[width=12cm]{images/mereni1.jpg}
+    \caption{Paralelní zrychlení 3. měření} 
+  \end{center}
+\end{figure}
+
+
+
+\subsection{Měření pro variantu 3}
+První měření bylo prováděno na vstupních datech velikosti XX částic a YY kroků simulace.
+
+\begin{center}
+\begin{tabular}{ c | c }
+\textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
+1 & 101.878906s \\ \hline
+2 & 107.039062s \\ \hline
+4 & 69.917969s \\ \hline
+8 & 63.246094s \\ \hline
+12 & 69.171875s \\ \hline
+24 & 44.578125s \\ \hline
+\end{tabular}
+\captionof{table}{Časy 1. měření}
+\end{center}
+
+\begin{figure}[h]
+  \begin{center}
+    %~ \includegraphics[width=12cm]{images/mereni1.jpg}
+    \caption{Paralelní zrychlení 1. měření} 
+  \end{center}
+\end{figure}
+
+Při prvním měření ...
+
+
+
+\begin{center}
+\begin{tabular}{ c | c }
+\textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
+1 & 206.921875s \\ \hline
+2 & 214.226562s \\ \hline
+4 & 201.382812s \\ \hline
+8 & 234.585938s \\ \hline
+16 & 227.109375s \\ \hline
+24 & 191.773438s \\ \hline
+\end{tabular}
+\captionof{table}{Časy 2. měření}
+\end{center}
+
+\begin{figure}[h]
+  \begin{center}
+    %~ \includegraphics[width=12cm]{images/mereni1.jpg}
+    \caption{Paralelní zrychlení 2. měření} 
+  \end{center}
+\end{figure}
+
+
+
+
+\begin{center}
+\begin{tabular}{ c | c }
+\textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
+1 & 160.281250s \\ \hline
+2 & 97.597656s \\ \hline
+4 & 50.394531s \\ \hline
+8 & 41.648438s \\ \hline
+16 & 26.859375s \\ \hline
+24 & 20.953125s \\ \hline
+\end{tabular}
+\captionof{table}{Časy 3. měření}
+\end{center}
+
+\begin{figure}[h]
+  \begin{center}
+    %~ \includegraphics[width=12cm]{images/mereni1.jpg}
+    \caption{Paralelní zrychlení 3. měření} 
+  \end{center}
+\end{figure}
+
+
+
 
 \end{document}
