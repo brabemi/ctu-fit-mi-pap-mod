@@ -41,7 +41,7 @@ Implementujte tento algoritmus (viz \url{http://www.browndeertechnology.com/docs
 \subsection{Popis sekvenčního algoritmu}
 Simulátor načte nastavení simulace ze vstupního souboru, z toho nainicializuje hodnoty a spustí simulaci.
 
-V každém kroku simulace se vypočítává nová pozice každé částice, nová pozice záleží na rychlosti dané částice a také na vlivu ostatních částic na tuto částici.
+V každém kroku simulace se vypočítává nová pozice každé částice, nová pozice záleží na vlastnostech dané částice a také na vlivu ostatních částic na tuto částici.
 
 Simulace končí po provedení zadaného počtu kroků.
 
@@ -55,7 +55,7 @@ V druhé variantě (V2) je automatická vektorizace (-O3) a SSE instrukce pro v�
 
 Ve třetí variantě (V3) je automatická vektorizace (-O3), SSE datové typy~\_\_m128 a SSE in\-struk\-ce pro výpočet ${\frac{1}{\sqrt{x}}}$.
 
-Porovnání rychlostí jednotlivých sekvenčích implementací je v tabulce níže.
+Porovnání rychlostí jednotlivých sekvenčních implementací je v tabulce níže.
 
 \begin{center}
 \begin{tabular}{c | c | c | c | c}
@@ -63,10 +63,10 @@ Porovnání rychlostí jednotlivých sekvenčích implementací je v tabulce ní
 1024 & 50 000 & 760.19s & 574.16s & 101.88s \\ \hline
 512 & 400 000 & 1526.06s & 1198.62s & 206.92s \\ \hline
 4096 & 5 000 & 1215.77s & 887.54s & 160.28s \\ \hline
+8192 & 1 500 & 1459.20s & 1059.13s & 190.76s \\ \hline
 \end{tabular}
 \captionof{table}{Časy sekvenčních implementací}
 \end{center}
-
 
 \section{Popis paralelního algoritmu a jeho implementace v OpenMP}
 %Popis případných úprav algoritmu a jeho implementace, včetně volby datových struktur
@@ -92,7 +92,7 @@ Dále by také bylo možno upravit kód, tak aby docházelo k počítání vzdá
 Momentálně se počítá vzdálenost mezi částicemi A a B dvakrát, jednou z pohledu částice A a jednou z pohledu částice B.
 
 \subsection{Vstupní data}
-Pro měření jsme vytvořili 3 vzorky dat. Vzorky dat se lišily v počtu částic a počtu kroků simulace.
+Pro měření jsme vytvořili 4 vzorky dat. Vzorky dat se lišily v počtu částic a počtu kroků simulace.
 Všechny vzorky byly srovnatelné co se týče výpočetní náročnosti. Výpočetní náročnost lze spočítat jako ${N = P^2 \times S}$, kde P = počet částic a S = počet kroků.
 Efektivita paralelního výpočtu se zlepšuje s rostoucím počtem částic.
 
@@ -102,6 +102,7 @@ Efektivita paralelního výpočtu se zlepšuje s rostoucím počtem částic.
 1024 & 50 000 & 52,428 \\ \hline
 512 & 400 000 & 104,857 \\ \hline
 4096 & 5 000 & 83,804 \\ \hline
+8192 & 1 500 & 100.663 \\ \hline
 \end{tabular}
 \captionof{table}{Časy sekvenčních implementací}
 \end{center}
@@ -109,10 +110,15 @@ Efektivita paralelního výpočtu se zlepšuje s rostoucím počtem částic.
 % Tabulkově a případně graficky zpracované naměřené hodnoty časové složitosti měřených instancí běhu (optimalizované implementace) programu s popisem instancí dat
 \section{Naměřené výsledky a vyhod\-noce\-ní pro O\-pen\-MP}
 K měření výkonu paralelní implementace byla použita stejná zadání, jako pro sekvenční variantu (viz předchozí tabulka).
+U každého měření je uvedena tabulka s počtem vláken a časem výpočtu ve vteřinách, informace z tabulky jsou dále vyneseny do grafu.
+Na konci měření k jednotlivým variantám jsou grafy s paralelním zrychlením.
+Na konci sekce je porovnání a vyhodnocení měření.
 
 \subsection{Měření pro variantu 2}
 Varianta 2 využívá automatická vektorizace (-O3) a SSE instrukce pro výpočet ${\frac{1}{\sqrt{x}}}$.
-
+%
+% 1. měření
+%
 \begin{center}
 \begin{tabular}{ c | c }
 \textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
@@ -126,13 +132,15 @@ Varianta 2 využívá automatická vektorizace (-O3) a SSE instrukce pro výpoč
 \captionof{table}{Časy 1. měření}
 \end{center}
 
-\begin{figure}
+\begin{figure}[H]
   \begin{center}
      \includegraphics[width=12cm]{images/sse1.png}
     \caption{Měření 1. instance} 
   \end{center}
 \end{figure}
-
+%
+% 2. měření
+%
 \begin{center}
 \begin{tabular}{ c | c }
 \textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
@@ -152,7 +160,9 @@ Varianta 2 využívá automatická vektorizace (-O3) a SSE instrukce pro výpoč
     \caption{Měření 2. instance} 
   \end{center}
 \end{figure}
-
+%
+% 3. měření
+%
 \begin{center}
 \begin{tabular}{ c | c }
 \textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
@@ -172,6 +182,28 @@ Varianta 2 využívá automatická vektorizace (-O3) a SSE instrukce pro výpoč
     \caption{Měření 3. instance} 
   \end{center}
 \end{figure}
+%
+% 4. měření
+%
+\begin{center}
+\begin{tabular}{ c | c }
+\textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
+1 & 1059.125000s \\ \hline
+2 & 532.804688s \\ \hline
+4 & 267.398438s \\ \hline
+8 & 133.281250s \\ \hline
+16 & 115.546875s \\ \hline
+24 & 78.445312s \\ \hline
+\end{tabular}
+\captionof{table}{Časy 4. měření}
+\end{center}
+
+\begin{figure}[H]
+  \begin{center}
+     \includegraphics[width=12cm]{images/sse4.png}
+    \caption{Měření 4. instance} 
+  \end{center}
+\end{figure}
 
 Z naměřených výsledků lze usoudit, že paralelizace algoritmu zredukuje výpočetní čas znatelně, ovšem lineárního zrychlení dosaženo nebylo, jak je vidět z následujících grafů.
 
@@ -189,16 +221,25 @@ Z naměřených výsledků lze usoudit, že paralelizace algoritmu zredukuje vý
   \end{center}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}
   \begin{center}
      \includegraphics[width=12cm]{images/sse3acc.png}
     \caption{Paralelní zrychlení v 3. měření} 
   \end{center}
 \end{figure}
 
+\begin{figure}[H]
+  \begin{center}
+     \includegraphics[width=12cm]{images/sse4acc.png}
+    \caption{Paralelní zrychlení v 4. měření} 
+  \end{center}
+\end{figure}
+
 \subsection{Měření pro variantu 3}
 Ve třetí variantě (V3) je automatická vektorizace (-O3), SSE datové typy~\_\_m128 a SSE in\-struk\-ce pro výpočet ${\frac{1}{\sqrt{x}}}$.
-
+%
+% 1. měření
+%
 \begin{center}
 \begin{tabular}{ c | c }
 \textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
@@ -212,13 +253,15 @@ Ve třetí variantě (V3) je automatická vektorizace (-O3), SSE datové typy~\_
 \captionof{table}{Časy 1. měření}
 \end{center}
 
-\begin{figure}[h]
+\begin{figure}[H]
   \begin{center}
      \includegraphics[width=12cm]{images/ssef1.png}
     \caption{Měření 1. instance} 
   \end{center}
 \end{figure}
-
+%
+% 2. měření
+%
 \begin{center}
 \begin{tabular}{ c | c }
 \textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
@@ -232,13 +275,15 @@ Ve třetí variantě (V3) je automatická vektorizace (-O3), SSE datové typy~\_
 \captionof{table}{Časy 2. měření}
 \end{center}
 
-\begin{figure}[t]
+\begin{figure}[H]
   \begin{center}
       \includegraphics[width=12cm]{images/ssef2.png}
     \caption{Měření 2. instance} 
   \end{center}
 \end{figure}
-
+%
+% 3. měření
+%
 \begin{center}
 \begin{tabular}{ c | c }
 \textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
@@ -252,14 +297,37 @@ Ve třetí variantě (V3) je automatická vektorizace (-O3), SSE datové typy~\_
 \captionof{table}{Časy 3. měření}
 \end{center}
 
-\begin{figure}[t]
+\begin{figure}[H]
   \begin{center}
       \includegraphics[width=12cm]{images/ssef3.png}	
     \caption{Měření 3. instance} 
   \end{center}
 \end{figure}
+%
+% 4. měření
+%
+\begin{center}
+\begin{tabular}{ c | c }
+\textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
+1 & 190.757812s \\ \hline
+2 & 96.101562s \\ \hline
+4 & 47.890625s \\ \hline
+8 & 24.515625s \\ \hline
+16 & 20.687500s \\ \hline
+24 & 13.859375s \\ \hline
+\end{tabular}
+\captionof{table}{Časy 4. měření}
+\end{center}
+
+\begin{figure}[H]
+  \begin{center}
+      \includegraphics[width=12cm]{images/ssef4.png}	
+    \caption{Měření 4. instance} 
+  \end{center}
+\end{figure}
 
 Naměřené výsledky ukazují, že efektivnější využití více vláken ve variantě č. 3 se projeví zejména při vyšším počtu částic.
+Následují grafy paralelního zrychlení.
 
 \begin{figure}[H]
   \begin{center}
@@ -271,14 +339,21 @@ Naměřené výsledky ukazují, že efektivnější využití více vláken ve v
 \begin{figure}[H]
   \begin{center}
      \includegraphics[width=12cm]{images/ssef2acc.png}
-    \caption{Paralelní zrychlení v 2. měření} 
+    \caption{Paralelní zrychlení ve 2. měření} 
   \end{center}
 \end{figure}
 
 \begin{figure}[H]
   \begin{center}
      \includegraphics[width=12cm]{images/ssef3acc.png}
-    \caption{Paralelní zrychlení v 3. měření} 
+    \caption{Paralelní zrychlení ve 3. měření} 
+  \end{center}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{center}
+     \includegraphics[width=12cm]{images/ssef4acc.png}
+    \caption{Paralelní zrychlení ve 4. měření} 
   \end{center}
 \end{figure}
 
@@ -286,34 +361,41 @@ Naměřené výsledky ukazují, že efektivnější využití více vláken ve v
 \subsection{Porovnání jednotlivých impelentací}
 První varianta algoritmu, tj. sekvenční s pouze automatickou vektorizací, vyšla jako nejpomalejší ze všech variant.
 
-Vektorizace v dalších dvou variantách přinesla obrovské zrychlení, varianta 2 oproti variantě 1 až 130\%, varianta 3 oproti variantě 1 přibližně 700\% zrychlení.
+Vektorizace v dalších dvou variantách přinesla obrovské zrychlení, varianta 2 je oproti variantě 1 až 1,3* rychlejší, varianta 3 oproti variantě 1 přibližně 7,5*.
 
-Spuštění varianty 2 na více vláknech přineslo zrychlení až 13*. Z jednotlivých měření lze usoudit, že zrychlení se zvyšuje s počtem částic.
+Spuštění varianty 2 na více vláknech přineslo zrychlení až 13,5*. Z jednotlivých měření lze usoudit, že zrychlení se zvyšuje i s větším množstvím vstupních dat.
 
-Spuštění varianty 3 na více vláknech zrychlilo výpočet až 7,6*.
+Spuštění varianty 3 na více vláknech zrychlilo výpočet až 13,7*.
 Bohužel to v některých případech výpočet i zpomalilo, to přisuzujeme příliš malému množství částic v kombinaci s řežií spojenou s vlákny.
-Zrychlení je naopak patrné v měření č. 3, kdy se při větším počtu částic výpočet zrychloval i s přibývajícími vlákny.
+Zrychlení je naopak patrné v měření 3 a 4, kdy se při větším počtu částic výpočet znatelně zrychloval s přibývajícími vlákny.
 
-Dále je uvedeno několik srovnávacích grafů.
+Dále jsou uvedeny grafy porovnávající variantu 2 a 3, ukazují vliv vektorizace na rychlost výpočtu.
 
-\begin{figure}[h]
+\begin{figure}
   \begin{center}
       \includegraphics[width=12cm]{images/vs1.png}	
     \caption{Porovnání implementací, měření 1} 
   \end{center}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}
   \begin{center}
       \includegraphics[width=12cm]{images/vs2.png}	
     \caption{Porovnání implementací, měření 2}
   \end{center}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}
   \begin{center}
       \includegraphics[width=12cm]{images/vs3.png}	
     \caption{Porovnání implementací, měření 3}
+  \end{center}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+      \includegraphics[width=12cm]{images/vs4.png}	
+    \caption{Porovnání implementací, měření 4}
   \end{center}
 \end{figure}
 
