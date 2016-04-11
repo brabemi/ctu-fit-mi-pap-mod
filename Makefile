@@ -10,10 +10,10 @@ OBJ_SSE=./SimConfig.o ./ioproc.o ./main_sse.o
 OBJ_SSE_F=./SimConfig.o ./ioproc.o ./main_sse_fast.o
 
 CIMGFLAGS=-O3 -L/usr/X11R6/lib -lm -lpthread -lX11
-COMPFLAGS=-fopenmp -fopt-info-vec
+COMPFLAGS=-fopenmp -fopt-info-vec -mavx -ffast-math
 CFLAGS=-Wall -pedantic -Wno-long-long
 
-compile: $(BIN) $(BIN_SSE) $(BIN_SSE_F) 
+compile: $(BIN) $(BIN_SSE) $(BIN_SSE_F)
 
 clean:
 	$(REMOVE) ./*.o $(BIN) $(BIN_SSE) $(BIN_SSE_F)

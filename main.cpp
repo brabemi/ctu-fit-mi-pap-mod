@@ -1,6 +1,6 @@
 #include <iostream>
 
-//~ #define PARALLEL_OPENMP //< define for OpenMP, undefine for sequential
+#define PARALLEL_OPENMP //< define for OpenMP, undefine for sequential
 #include <omp.h> // OpenMP library
 
 // if the following variable is NOT defined, program will not use any function nor include the CImg library
