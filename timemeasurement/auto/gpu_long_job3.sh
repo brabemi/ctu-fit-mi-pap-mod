@@ -22,7 +22,7 @@
 #$ -e .
 
 # The path used for the standard output stream of the job.
-#$ -o ./sse3.txt
+#$ -o ./auto3.txt
 
 # Do not change.
 #$ -pe ompi 1
@@ -30,4 +30,4 @@
 # Do not change.
 #$ -q gpu_long.q
 
-../../simulator_sse $1 0 ../../input3.txt
+../../simulator $1 0 ../../input3.txt
