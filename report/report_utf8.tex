@@ -49,21 +49,21 @@ Simulace končí po provedení zadaného počtu kroků.
 
 Bylo implementováno několik sekvenčních variant, lišících se v míře ruční vektorizace struktur použitých v algoritmu.
 
-První varianta (V1) používá pouze automatickou vektorizaci (přepínač -O3), nepoužívá žádné SSE instrukce ani ručně vytvořené vektory.
+První varianta (V1) používá pouze automatickou optimalizaci, nepoužívá žádné SSE instrukce ani ručně vytvořené vektory.
 
-V druhé variantě (V2) je automatická vektorizace (-O3) a SSE instrukce pro výpočet ${\frac{1}{\sqrt{x}}}$.
+V druhé variantě (V2) je automatická optimalizace a vektorizace a SSE instrukce pro výpočet ${\frac{1}{\sqrt{x}}}$.
 
-Ve třetí variantě (V3) je automatická vektorizace (-O3), SSE datové typy~\_\_m128 a SSE in\-struk\-ce pro výpočet ${\frac{1}{\sqrt{x}}}$.
+Ve třetí variantě (V3) je automatická optimalizace a vektorizace, SSE datové typy~\_\_m128 a SSE in\-struk\-ce pro výpočet ${\frac{1}{\sqrt{x}}}$.
 
 Porovnání rychlostí jednotlivých sekvenčních implementací je v tabulce níže.
 
 \begin{center}
 \begin{tabular}{c | c | c | c | c}
 \textbf{Počet částic} & \textbf{Počet kroků sim.}  & \textbf{V1} & \textbf{V2} & \textbf{V3} \\ \hline \hline
-1024 & 50 000 & 760.19s & 574.16s & 101.88s \\ \hline
-512 & 400 000 & 1526.06s & 1198.62s & 206.92s \\ \hline
-4096 & 5 000 & 1215.77s & 887.54s & 160.28s \\ \hline
-8192 & 1 500 & 1459.20s & 1059.13s & 190.76s \\ \hline
+1024 & 50 000 & 760.19s & 149.38s & 97.98s \\ \hline
+512 & 400 000 & 1526.06s & 357.50s & 202.17s \\ \hline
+4096 & 5 000 & 1215.77s & 207.57s & 153.81s \\ \hline
+8192 & 1 500 & 1459.20s & 242.25s & 184.60s \\ \hline
 \end{tabular}
 \captionof{table}{Časy sekvenčních implementací}
 \end{center}
@@ -102,14 +102,28 @@ Efektivita paralelního výpočtu se zlepšuje s rostoucím počtem částic.
 1024 & 50 000 & 52,428 \\ \hline
 512 & 400 000 & 104,857 \\ \hline
 4096 & 5 000 & 83,804 \\ \hline
-8192 & 1 500 & 100.663 \\ \hline
+8192 & 1 500 & 100,663 \\ \hline
 \end{tabular}
 \captionof{table}{Časy sekvenčních implementací}
 \end{center}
 
+Po naměření sekvenčních implementací bez vektorizace a s vektorizací jsme usoudili, že pro měření paralelních implementací zvýšíme výpočetní náročnost úloh.
+Samotná vektorizace zrychlila sekvenční část mnohonásobně - simulace běžící sekvenčně bez vektorizace téměř 25 minut trvala s vektorizací 3-4 minuty.
+
+\begin{center}
+\begin{tabular}{c | c | c | c}
+\textbf{Měření} & \textbf{Počet částic} & \textbf{Počet kroků sim.} & \textbf{Výpočetní náročnost} \\ \hline \hline
+1 & 1024 & 150 000 & 157,284 \\ \hline
+2 & 512 & 1 200 000 & 314,571 \\ \hline
+3 & 4096 & 15 000 & 251,412 \\ \hline
+4 & 8192 & 4 500 & 301.989 \\ \hline
+\end{tabular}
+\captionof{table}{Nové zadání pro měření}
+\end{center}
+
 % Tabulkově a případně graficky zpracované naměřené hodnoty časové složitosti měřených instancí běhu (optimalizované implementace) programu s popisem instancí dat
 \section{Naměřené výsledky a vyhod\-noce\-ní pro O\-pen\-MP}
-K měření výkonu paralelní implementace byla použita stejná zadání, jako pro sekvenční variantu (viz předchozí tabulka).
+K měření výkonu paralelní implementace bylo původní zadání pozměněno tak, aby bylo výpočetně náročnější, viz následující tabulka.
 U každého měření je uvedena tabulka s počtem vláken a časem výpočtu ve vteřinách, informace z tabulky jsou dále vyneseny do grafu.
 Na konci měření k jednotlivým variantám jsou grafy s paralelním zrychlením.
 Na konci sekce je porovnání a vyhodnocení měření.
@@ -122,19 +136,20 @@ Varianta 2 využívá automatická vektorizace (-O3) a SSE instrukce pro výpoč
 \begin{center}
 \begin{tabular}{ c | c }
 \textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
-1 & 574.160156s \\ \hline
-2 & 342.273438s \\ \hline
-4 & 182.601562s \\ \hline
-8 & 128.050781s \\ \hline
-16 & 94.910156s \\ \hline
-24 & 92.789062s \\ \hline
+1 & 448.140625s \\ \hline
+2 & 422.681641s \\ \hline
+4 & 269.634277s \\ \hline
+8 & 253.593750s \\ \hline
+12 & 220.276367s \\ \hline
+16 & 188.523438s \\ \hline
+24 & 188.625000s \\ \hline
 \end{tabular}
 \captionof{table}{Časy 1. měření}
 \end{center}
 
 \begin{figure}[H]
   \begin{center}
-     \includegraphics[width=12cm]{images/sse1.png}
+     \includegraphics[width=12cm]{images/auto1.png}
     \caption{Měření 1. instance} 
   \end{center}
 \end{figure}
@@ -144,19 +159,20 @@ Varianta 2 využívá automatická vektorizace (-O3) a SSE instrukce pro výpoč
 \begin{center}
 \begin{tabular}{ c | c }
 \textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
-1 & 1198.617188s \\ \hline
-2 & 758.753906s \\ \hline
-4 & 480.691406s \\ \hline
-8 & 439.945312s \\ \hline
-16 & 426.421875s \\ \hline
-24 & 446.625000s \\ \hline
+1 & 1066.172363s \\ \hline
+2 & 1004.078125s \\ \hline
+4 & 773.147461s \\ \hline
+8 & 765.203125s \\ \hline
+12 & 807.484375s \\ \hline
+16 & 782.453125s \\ \hline
+24 & 640.501953s \\ \hline
 \end{tabular}
 \captionof{table}{Časy 2. měření}
 \end{center}
 
 \begin{figure}
   \begin{center}
-    \includegraphics[width=12cm]{images/sse2.png}
+    \includegraphics[width=12cm]{images/auto2.png}
     \caption{Měření 2. instance} 
   \end{center}
 \end{figure}
@@ -166,19 +182,20 @@ Varianta 2 využívá automatická vektorizace (-O3) a SSE instrukce pro výpoč
 \begin{center}
 \begin{tabular}{ c | c }
 \textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
-1 & 887.542969s \\ \hline
-2 & 452.800781s \\ \hline
-4 & 225.554688s \\ \hline
-8 & 117.988281s \\ \hline
-16 & 99.117188s \\ \hline
-24 & 67.757812s \\ \hline
+1 & 621.765625s \\ \hline
+2 & 364.220703s \\ \hline
+4 & 185.841797s \\ \hline
+8 & 109.250000s \\ \hline
+12 & 101.171875s \\ \hline
+16 & 84.234375s \\ \hline
+24 & 74.109375s \\ \hline
 \end{tabular}
 \captionof{table}{Časy 3. měření}
 \end{center}
 
 \begin{figure}[H]
   \begin{center}
-     \includegraphics[width=12cm]{images/sse3.png}
+     \includegraphics[width=12cm]{images/auto3.png}
     \caption{Měření 3. instance} 
   \end{center}
 \end{figure}
@@ -188,19 +205,20 @@ Varianta 2 využívá automatická vektorizace (-O3) a SSE instrukce pro výpoč
 \begin{center}
 \begin{tabular}{ c | c }
 \textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
-1 & 1059.125000s \\ \hline
-2 & 532.804688s \\ \hline
-4 & 267.398438s \\ \hline
-8 & 133.281250s \\ \hline
-16 & 115.546875s \\ \hline
-24 & 78.445312s \\ \hline
+1 & 720.630859s \\ \hline
+2 & 372.531250s \\ \hline
+4 & 190.187500s \\ \hline
+8 & 92.015625s \\ \hline
+12 & 84.015625s \\ \hline
+16 & 76.273438s \\ \hline
+24 & 51.625000s \\ \hline
 \end{tabular}
 \captionof{table}{Časy 4. měření}
 \end{center}
 
 \begin{figure}[H]
   \begin{center}
-     \includegraphics[width=12cm]{images/sse4.png}
+     \includegraphics[width=12cm]{images/auto4.png}
     \caption{Měření 4. instance} 
   \end{center}
 \end{figure}
@@ -209,28 +227,28 @@ Z naměřených výsledků lze usoudit, že paralelizace algoritmu zredukuje vý
 
 \begin{figure}[H]
   \begin{center}
-     \includegraphics[width=12cm]{images/sse1acc.png}
+     \includegraphics[width=12cm]{images/auto1acc.png}
     \caption{Paralelní zrychlení v 1. měření} 
   \end{center}
 \end{figure}
 
 \begin{figure}
   \begin{center}
-     \includegraphics[width=12cm]{images/sse2acc.png}
+     \includegraphics[width=12cm]{images/auto2acc.png}
     \caption{Paralelní zrychlení v 2. měření} 
   \end{center}
 \end{figure}
 
 \begin{figure}
   \begin{center}
-     \includegraphics[width=12cm]{images/sse3acc.png}
+     \includegraphics[width=12cm]{images/auto3acc.png}
     \caption{Paralelní zrychlení v 3. měření} 
   \end{center}
 \end{figure}
 
 \begin{figure}[H]
   \begin{center}
-     \includegraphics[width=12cm]{images/sse4acc.png}
+     \includegraphics[width=12cm]{images/auto4acc.png}
     \caption{Paralelní zrychlení v 4. měření} 
   \end{center}
 \end{figure}
@@ -243,12 +261,13 @@ Ve třetí variantě (V3) je automatická vektorizace (-O3), SSE datové typy~\_
 \begin{center}
 \begin{tabular}{ c | c }
 \textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
-1 & 101.878906s \\ \hline
-2 & 107.039062s \\ \hline
-4 & 69.917969s \\ \hline
-8 & 63.246094s \\ \hline
-12 & 69.171875s \\ \hline
-24 & 44.578125s \\ \hline
+1 & 292.988647s \\ \hline
+2 & 321.015625s \\ \hline
+4 & 206.636963s \\ \hline
+8 & 191.578125s \\ \hline
+12 & 189.591797s \\ \hline
+16 & 159.812500s \\ \hline
+24 & 144.281250s \\ \hline
 \end{tabular}
 \captionof{table}{Časy 1. měření}
 \end{center}
@@ -265,12 +284,13 @@ Ve třetí variantě (V3) je automatická vektorizace (-O3), SSE datové typy~\_
 \begin{center}
 \begin{tabular}{ c | c }
 \textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
-1 & 206.921875s \\ \hline
-2 & 214.226562s \\ \hline
-4 & 201.382812s \\ \hline
-8 & 234.585938s \\ \hline
-16 & 227.109375s \\ \hline
-24 & 191.773438s \\ \hline
+1 & 607.515625s \\ \hline
+2 & 675.796875s \\ \hline
+4 & 592.843750s \\ \hline
+8 & 683.521484s \\ \hline
+12 & 845.265625s \\ \hline
+16 & 696.267578s \\ \hline
+24 & 587.625000s \\ \hline
 \end{tabular}
 \captionof{table}{Časy 2. měření}
 \end{center}
@@ -287,12 +307,13 @@ Ve třetí variantě (V3) je automatická vektorizace (-O3), SSE datové typy~\_
 \begin{center}
 \begin{tabular}{ c | c }
 \textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
-1 & 160.281250s \\ \hline
-2 & 97.597656s \\ \hline
-4 & 50.394531s \\ \hline
-8 & 41.648438s \\ \hline
-16 & 26.859375s \\ \hline
-24 & 20.953125s \\ \hline
+1 & 398.190857s \\ \hline
+2 & 284.056641s \\ \hline
+4 & 152.609375s \\ \hline
+8 & 123.656250s \\ \hline
+12 & 105.606934s \\ \hline
+16 & 78.484375s \\ \hline
+24 & 67.243164s \\ \hline
 \end{tabular}
 \captionof{table}{Časy 3. měření}
 \end{center}
@@ -309,12 +330,13 @@ Ve třetí variantě (V3) je automatická vektorizace (-O3), SSE datové typy~\_
 \begin{center}
 \begin{tabular}{ c | c }
 \textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
-1 & 190.757812s \\ \hline
-2 & 96.101562s \\ \hline
-4 & 47.890625s \\ \hline
-8 & 24.515625s \\ \hline
-16 & 20.687500s \\ \hline
-24 & 13.859375s \\ \hline
+1 & 553.531250s \\ \hline
+2 & 277.496094s \\ \hline
+4 & 139.218750s \\ \hline
+8 & 72.937500s \\ \hline
+12 & 48.828125s \\ \hline
+16 & 62.685547s \\ \hline
+24 & 42.093750s \\ \hline
 \end{tabular}
 \captionof{table}{Časy 4. měření}
 \end{center}
@@ -358,7 +380,7 @@ Následují grafy paralelního zrychlení.
 \end{figure}
 
 % Analýza a hodnocení vlastností dané implementace programu.
-\subsection{Porovnání jednotlivých impelentací}
+\subsection{Porovnání jednotlivých implementací}
 První varianta algoritmu, tj. sekvenční s pouze automatickou vektorizací, vyšla jako nejpomalejší ze všech variant.
 
 Vektorizace v dalších dvou variantách přinesla obrovské zrychlení, varianta 2 je oproti variantě 1 až 1,3* rychlejší, varianta 3 oproti variantě 1 přibližně 7,5*.
