@@ -45,13 +45,18 @@ V každém kroku simulace se vypočítává nová pozice každé částice, nov�
 
 Simulace končí po provedení zadaného počtu kroků.
 
+Vizualizovat simulaci lze dvěma způsoby.
+První umožňuje sledovat průběh simulace jako animaci přímo za běhu, k tomu byla využita knihovna CImg.
+Druhý způsob využívá moožností programu gnuplot,
+simulátor vytvoří zdrojový soubor pro vizualizaci v gnuplotu a zároveň vytvoří soubor se zdrojovými daty, která se mají vykreslit.
+
 \subsection{Sekvenční implementace}
 
 Bylo implementováno několik sekvenčních variant, lišících se v míře ruční vektorizace struktur použitých v algoritmu.
 
 První varianta (V1) používá pouze automatickou optimalizaci, nepoužívá žádné SSE instrukce ani ručně vytvořené vektory.
 
-V druhé variantě (V2) je automatická optimalizace a vektorizace a SSE instrukce pro výpočet ${\frac{1}{\sqrt{x}}}$.
+V druhé variantě (V2) je automatická optimalizace a vektorizace. % a SSE instrukce pro výpočet ${\frac{1}{\sqrt{x}}}$.
 
 Ve třetí variantě (V3) je automatická optimalizace a vektorizace, SSE datové typy~\_\_m128 a SSE in\-struk\-ce pro výpočet ${\frac{1}{\sqrt{x}}}$.
 
@@ -85,7 +90,6 @@ Díky tomu je možné počítat 4 inverzní odmocniny naráz a dochází k rapid
 
 % Popis optimalizací pro dosažení lineárního zrychlení
 \subsection{Optimalizace}
-
 Pro vektorizaci byly využity technologie obsažené v SSE2. Dalšího zrychlení by bylo možno dosáhnout při použití novějších vektorových instrukcí.
 Ty by měly umožňovat tvorbu chunků o velikosti 8, případně 16.
 Dále by také bylo možno upravit kód, tak aby docházelo k počítání vzdálenosti mezi částicemi pouze jednou.
@@ -104,10 +108,10 @@ Efektivita paralelního výpočtu se zlepšuje s rostoucím počtem částic.
 4096 & 5 000 & 83,804 \\ \hline
 8192 & 1 500 & 100,663 \\ \hline
 \end{tabular}
-\captionof{table}{Časy sekvenčních implementací}
+\captionof{table}{Vzorky použité pro srovnání sekvenčních implementací}
 \end{center}
 
-Po naměření sekvenčních implementací bez vektorizace a s vektorizací jsme usoudili, že pro měření paralelních implementací zvýšíme výpočetní náročnost úloh.
+Po naměření časů sekvenčních implementací bez vektorizace a s vektorizací jsme usoudili, že pro měření paralelních implementací zvýšíme výpočetní náročnost úloh.
 Samotná vektorizace zrychlila sekvenční část mnohonásobně - simulace běžící sekvenčně bez vektorizace téměř 25 minut trvala s vektorizací 3-4 minuty.
 
 \begin{center}
@@ -118,18 +122,18 @@ Samotná vektorizace zrychlila sekvenční část mnohonásobně - simulace bě�
 3 & 4096 & 15 000 & 251,412 \\ \hline
 4 & 8192 & 4 500 & 301.989 \\ \hline
 \end{tabular}
-\captionof{table}{Nové zadání pro měření}
+\captionof{table}{Nové zadání pro měření paralelního zrychlení}
 \end{center}
 
 % Tabulkově a případně graficky zpracované naměřené hodnoty časové složitosti měřených instancí běhu (optimalizované implementace) programu s popisem instancí dat
 \section{Naměřené výsledky a vyhod\-noce\-ní pro O\-pen\-MP}
-K měření výkonu paralelní implementace bylo původní zadání pozměněno tak, aby bylo výpočetně náročnější, viz následující tabulka.
+K měření výkonu paralelní implementace bylo původní zadání pozměněno tak, aby bylo výpočetně náročnější, viz předchozí tabulka.
 U každého měření je uvedena tabulka s počtem vláken a časem výpočtu ve vteřinách, informace z tabulky jsou dále vyneseny do grafu.
 Na konci měření k jednotlivým variantám jsou grafy s paralelním zrychlením.
 Na konci sekce je porovnání a vyhodnocení měření.
 
 \subsection{Měření pro variantu 2}
-Varianta 2 využívá automatická vektorizace (-O3) a SSE instrukce pro výpočet ${\frac{1}{\sqrt{x}}}$.
+Varianta 2 využívá automatické vektorizace. % (-O3) a SSE instrukce pro výpočet ${\frac{1}{\sqrt{x}}}$.
 %
 % 1. měření
 %
@@ -223,7 +227,10 @@ Varianta 2 využívá automatická vektorizace (-O3) a SSE instrukce pro výpoč
   \end{center}
 \end{figure}
 
-Z naměřených výsledků lze usoudit, že paralelizace algoritmu zredukuje výpočetní čas znatelně, ovšem lineárního zrychlení dosaženo nebylo, jak je vidět z následujících grafů.
+Z naměřených výsledků lze usoudit, že paralelizace algoritmu zredukuje výpočetní čas znatelně, až 14*.
+Z měření je vidět, že čím více částic bylo v simulaci, tím vyššího zrychlení bylo dosaženo.
+Vyšší počet kroků simulace naopak zrychlení spíš srážel, někdy dokonce zpomaloval.
+Lineárního zrychlení dosaženo nebylo, jak je vidět z následujících grafů.
 
 \begin{figure}[H]
   \begin{center}
@@ -232,7 +239,7 @@ Z naměřených výsledků lze usoudit, že paralelizace algoritmu zredukuje vý
   \end{center}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \begin{center}
      \includegraphics[width=12cm]{images/auto2acc.png}
     \caption{Paralelní zrychlení v 2. měření} 
@@ -254,7 +261,7 @@ Z naměřených výsledků lze usoudit, že paralelizace algoritmu zredukuje vý
 \end{figure}
 
 \subsection{Měření pro variantu 3}
-Ve třetí variantě (V3) je automatická vektorizace (-O3), SSE datové typy~\_\_m128 a SSE in\-struk\-ce pro výpočet ${\frac{1}{\sqrt{x}}}$.
+Ve třetí variantě (V3) je automatická optimalizace, automatická a ruční vektorizace, mj. SSE datové typy~\_\_m128 a SSE in\-struk\-ce pro výpočet ${\frac{1}{\sqrt{x}}}$.
 %
 % 1. měření
 %
@@ -348,6 +355,7 @@ Ve třetí variantě (V3) je automatická vektorizace (-O3), SSE datové typy~\_
   \end{center}
 \end{figure}
 
+Paralelizace varianty č. 3 zrychlila výpočet až 13*. 
 Naměřené výsledky ukazují, že efektivnější využití více vláken ve variantě č. 3 se projeví zejména při vyšším počtu částic.
 Následují grafy paralelního zrychlení.
 
@@ -383,13 +391,15 @@ Následují grafy paralelního zrychlení.
 \subsection{Porovnání jednotlivých implementací}
 První varianta algoritmu, tj. sekvenční s pouze automatickou vektorizací, vyšla jako nejpomalejší ze všech variant.
 
-Vektorizace v dalších dvou variantách přinesla obrovské zrychlení, varianta 2 je oproti variantě 1 až 1,3* rychlejší, varianta 3 oproti variantě 1 přibližně 7,5*.
+Vektorizace v dalších dvou variantách přinesla obrovské zrychlení, varianta 2 je oproti variantě 1 až 6* rychlejší, varianta 3 oproti variantě 1 přibližně 8*.
 
-Spuštění varianty 2 na více vláknech přineslo zrychlení až 13,5*. Z jednotlivých měření lze usoudit, že zrychlení se zvyšuje i s větším množstvím vstupních dat.
+Spuštění varianty 2 na více vláknech přineslo zrychlení až 14*. Z jednotlivých měření lze usoudit, že zrychlení se zvyšuje i s větším množstvím částic.
+Varianta 2 nikdy výpočet nezpomalila, její sekvenční implementace sice je pomalejší než varianta 3, ale v paralelizaci dosahovala většího zrychlení.
 
-Spuštění varianty 3 na více vláknech zrychlilo výpočet až 13,7*.
+Spuštění varianty 3 na více vláknech zrychlilo výpočet až 13,1*.
 Bohužel to v některých případech výpočet i zpomalilo, to přisuzujeme příliš malému množství částic v kombinaci s řežií spojenou s vlákny.
 Zrychlení je naopak patrné v měření 3 a 4, kdy se při větším počtu částic výpočet znatelně zrychloval s přibývajícími vlákny.
+Varianta 3 také těžila z velmi dobrého sekvenčního času, který předčil i variantu 2 s automatickou opt. a vektorizací.
 
 Dále jsou uvedeny grafy porovnávající variantu 2 a 3, ukazují vliv vektorizace na rychlost výpočtu.
 
