@@ -47,7 +47,7 @@ Simulace končí po provedení zadaného počtu kroků.
 
 Vizualizovat simulaci lze dvěma způsoby.
 První umožňuje sledovat průběh simulace jako animaci přímo za běhu, k tomu byla využita knihovna CImg.
-Druhý způsob využívá moožností programu gnuplot,
+Druhý způsob využívá možností programu gnuplot,
 simulátor vytvoří zdrojový soubor pro vizualizaci v gnuplotu a zároveň vytvoří soubor se zdrojovými daty, která se mají vykreslit.
 
 \subsection{Sekvenční implementace}
@@ -390,7 +390,7 @@ Následují grafy paralelního zrychlení.
 
 % Analýza a hodnocení vlastností dané implementace programu.
 \subsection{Porovnání jednotlivých implementací}
-První varianta algoritmu, tj. sekvenční s pouze automatickou vektorizací, vyšla jako nejpomalejší ze všech variant.
+První varianta algoritmu, tj. sekvenční s pouze automatickou vektorizací (-O3 -mavx), vyšla jako nejpomalejší ze všech variant.
 
 Vektorizace v dalších dvou variantách přinesla obrovské zrychlení, varianta 2 je oproti variantě 1 až 6${\times}$ rychlejší, varianta 3 oproti variantě 1 přibližně 8${\times}$.
 
