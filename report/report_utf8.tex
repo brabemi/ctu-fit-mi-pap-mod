@@ -81,16 +81,17 @@ Rozdělení částic mezi vlákna bylo ponecháno na OpenMP.
 % Zda byla využita vektorizace (popř. proč jí nemožno využít)
 \subsection{Vektorizace}
 
-V prog\-ramu byla nej\-prve pou\-žita au\-toma\-tická vekto\-ri\-za\-ce (-O3).
-Její výsledek měl na rychlost výpočtu minimální vliv. Za nejkritičtější část kódu byla vyhodnocena část, kde se počítá ${\frac{1}{\sqrt{x}}}$.
-Pro tento úsek kódu lze využít speciální vektorové instrukce. Použitím této instrukce došlo ke znatelnému zrychlení výpočtu.
-V další fázi byl kód upraven, tak aby bylo možné využít vektorové instrukce které dokáží počítat paralelně několik hodnot ${\frac{1}{\sqrt{x}}}$.
+V prog\-ramu byla nej\-prve pou\-žita au\-toma\-tická vekto\-ri\-za\-ce (-O3 -mavx).
+Její výsledek měl na rychlost výpočtu minimální vliv. Výrazné zrychlení nastalo, až po přidání přepínače -ffast-math.
+Díky tomuto přepínači mohl kompilátor použít vektorové instrukce pro výpočet ${\frac{1}{\sqrt{x}}}$. 
+
+V další fázi byl kód ručně upraven, tak aby bylo možné využít vektorové instrukce, které dokáží počítat paralelně několik hodnot ${\frac{1}{\sqrt{x}}}$.
 Zde byly částice rozděleny do chunků po 4 a v každém kroku se počítá ovlivnění částice chunkem částic.
-Díky tomu je možné počítat 4 inverzní odmocniny naráz a dochází k rapidnímu zrychlení. 
+Tato varianta vykazovala další zrychlení cca o 33\% oproti předchozí variantě (-O3 -mavx -ffast-math).
 
 % Popis optimalizací pro dosažení lineárního zrychlení
 \subsection{Optimalizace}
-Pro vektorizaci byly využity technologie obsažené v SSE2. Dalšího zrychlení by bylo možno dosáhnout při použití novějších vektorových instrukcí.
+Pro ruční vektorizaci byly využity technologie obsažené již v SSE2 (datový typ \_\_m128). Dalšího zrychlení by bylo možno dosáhnout při použití novějších vektorových instrukcí.
 Ty by měly umožňovat tvorbu chunků o velikosti 8, případně 16.
 Dále by také bylo možno upravit kód, tak aby docházelo k počítání vzdálenosti mezi částicemi pouze jednou.
 Momentálně se počítá vzdálenost mezi částicemi A a B dvakrát, jednou z pohledu částice A a jednou z pohledu částice B.
@@ -227,7 +228,7 @@ Varianta 2 využívá automatické vektorizace. % (-O3) a SSE instrukce pro výp
   \end{center}
 \end{figure}
 
-Z naměřených výsledků lze usoudit, že paralelizace algoritmu zredukuje výpočetní čas znatelně, až 14*.
+Z naměřených výsledků lze usoudit, že paralelizace algoritmu zredukuje výpočetní čas znatelně, až 14${\times}$.
 Z měření je vidět, že čím více částic bylo v simulaci, tím vyššího zrychlení bylo dosaženo.
 Vyšší počet kroků simulace naopak zrychlení spíš srážel, někdy dokonce zpomaloval.
 Lineárního zrychlení dosaženo nebylo, jak je vidět z následujících grafů.
@@ -355,7 +356,7 @@ Ve třetí variantě (V3) je automatická optimalizace, automatická a ruční v
   \end{center}
 \end{figure}
 
-Paralelizace varianty č. 3 zrychlila výpočet až 13*. 
+Paralelizace varianty č. 3 zrychlila výpočet až 13${\times}$. 
 Naměřené výsledky ukazují, že efektivnější využití více vláken ve variantě č. 3 se projeví zejména při vyšším počtu částic.
 Následují grafy paralelního zrychlení.
 
@@ -391,12 +392,12 @@ Následují grafy paralelního zrychlení.
 \subsection{Porovnání jednotlivých implementací}
 První varianta algoritmu, tj. sekvenční s pouze automatickou vektorizací, vyšla jako nejpomalejší ze všech variant.
 
-Vektorizace v dalších dvou variantách přinesla obrovské zrychlení, varianta 2 je oproti variantě 1 až 6* rychlejší, varianta 3 oproti variantě 1 přibližně 8*.
+Vektorizace v dalších dvou variantách přinesla obrovské zrychlení, varianta 2 je oproti variantě 1 až 6${\times}$ rychlejší, varianta 3 oproti variantě 1 přibližně 8${\times}$.
 
-Spuštění varianty 2 na více vláknech přineslo zrychlení až 14*. Z jednotlivých měření lze usoudit, že zrychlení se zvyšuje i s větším množstvím částic.
+Spuštění varianty 2 na více vláknech přineslo zrychlení až 14${\times}$. Z jednotlivých měření lze usoudit, že zrychlení se zvyšuje i s větším množstvím částic.
 Varianta 2 nikdy výpočet nezpomalila, její sekvenční implementace sice je pomalejší než varianta 3, ale v paralelizaci dosahovala většího zrychlení.
 
-Spuštění varianty 3 na více vláknech zrychlilo výpočet až 13,1*.
+Spuštění varianty 3 na více vláknech zrychlilo výpočet až 13,1${\times}$.
 Bohužel to v některých případech výpočet i zpomalilo, to přisuzujeme příliš malému množství částic v kombinaci s řežií spojenou s vlákny.
 Zrychlení je naopak patrné v měření 3 a 4, kdy se při větším počtu částic výpočet znatelně zrychloval s přibývajícími vlákny.
 Varianta 3 také těžila z velmi dobrého sekvenčního času, který předčil i variantu 2 s automatickou opt. a vektorizací.
