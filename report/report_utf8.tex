@@ -432,5 +432,108 @@ Dále jsou uvedeny grafy porovnávající variantu 2 a 3, ukazují vliv vektoriz
   \end{center}
 \end{figure}
 
+\section{Naměřené výs\-led\-ky a vyhod\-noce\-ní pro Xeon Phi}
+Program pro Xeon Phi byl vytvořen z původního zdrojového kódu jeho kompilací přes icc, tj. kompilátor od Intelu.
+Výsledný program je tedy podobný variantě 2 z předchozí sekce, jen jsou automatické optimalizace a vektorizace v režii jiného kompilátoru a přizpůsobené jiné architektuře.
+
+\subsection{Co se měřilo}
+Měření proběhlo na stejných datech, pro připomenutí jsou jednotlivá zadání uvedena v následující tabulce.
+
+\begin{center}
+\begin{tabular}{c | c | c | c}
+\textbf{Měření} & \textbf{Počet částic} & \textbf{Počet kroků sim.} & \textbf{Výpočetní náročnost} \\ \hline \hline
+1 & 1024 & 150 000 & 157,284 \\ \hline
+2 & 512 & 1 200 000 & 314,571 \\ \hline
+3 & 4096 & 15 000 & 251,412 \\ \hline
+4 & 8192 & 4 500 & 301.989 \\ \hline
+\end{tabular}
+\captionof{table}{Zadání měření - pro připomenutí}
+\end{center}
+
+\subsection{Výsledky měření}
+
+%
+% 1. měření
+%
+\begin{center}
+\begin{tabular}{ c | c }
+\textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
+61 & 98.085072s \\ \hline
+122 & 116.254455s \\ \hline
+244 & 50.155506s \\ \hline
+\end{tabular}
+\captionof{table}{Časy 1. měření}
+\end{center}
+
+\begin{figure}[H]
+  \begin{center}
+      \includegraphics[width=12cm]{images/phi1.png}	
+    \caption{Měření 1. instance} 
+  \end{center}
+\end{figure}
+
+
+%
+% 2. měření
+%
+\begin{center}
+\begin{tabular}{ c | c }
+\textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
+61 & 393.132266s \\ \hline
+122 & 431.340725s \\ \hline
+244 & 272.362233s \\ \hline
+\end{tabular}
+\captionof{table}{Časy 2. měření}
+\end{center}
+
+\begin{figure}[H]
+  \begin{center}
+      \includegraphics[width=12cm]{images/phi2.png}	
+    \caption{Měření 2. instance} 
+  \end{center}
+\end{figure}
+
+%
+% 3. měření
+%
+\begin{center}
+\begin{tabular}{ c | c }
+\textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
+61 & 30.253954s \\ \hline
+122 & 18.628104s \\ \hline
+244 & 11.668549s \\ \hline
+\end{tabular}
+\captionof{table}{Časy 3. měření}
+\end{center}
+
+\begin{figure}[H]
+  \begin{center}
+      \includegraphics[width=12cm]{images/phi3.png}	
+    \caption{Měření 3. instance} 
+  \end{center}
+\end{figure}
+
+%
+% 4. měření
+%
+\begin{center}
+\begin{tabular}{ c | c }
+\textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
+61 & 28.133410s \\ \hline
+122 & 17.696219s \\ \hline
+244 & 11.387652s \\ \hline
+\end{tabular}
+\captionof{table}{Časy 4. měření}
+\end{center}
+
+\begin{figure}[H]
+  \begin{center}
+      \includegraphics[width=12cm]{images/phi4.png}	
+    \caption{Měření 4. instance} 
+  \end{center}
+\end{figure}
+
+Ve všech měřeních byl výpočet na Xeonu Phi rychlejší než výpočet provedený na klasických procesorech.
+
 
 \end{document}
