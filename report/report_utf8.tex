@@ -450,6 +450,10 @@ Měření proběhlo na stejných datech, pro připomenutí jsou jednotlivá zad�
 \captionof{table}{Zadání měření - pro připomenutí}
 \end{center}
 
+\subsection{Vektorizace}
+
+Kompilátor icc provedl automatickou vektorizaci, při které došlo k vektorizaci stejného bloku kódu jako u kompilátoru gcc. Vektorizován byl vnitřní cyklus kódu, který počítá to jak se částice navzájem ovlivňují. Vektorizace tohoto úseku kódu má velký vliv na výkonost. Zrychlení je způsobeno tím, že v tomto úseku kódu je třeba počítat vzdálenost 2 částic. V tomto výpočtu figuruje inverzní odmocnina. Díky vektorizaci lze spočítat inverzní odmocninu rychleji a zároveň  lze počítat několik hodnot najednou.
+
 \subsection{Výsledky měření bez vektorizace}
 %
 % 1. měření
