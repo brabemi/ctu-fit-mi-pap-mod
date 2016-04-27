@@ -452,9 +452,11 @@ Měření proběhlo na stejných datech, pro připomenutí jsou jednotlivá zad�
 
 \subsection{Vektorizace}
 
-Kompilátor icc provedl automatickou vektorizaci, při které došlo k vektorizaci stejného bloku kódu jako u kompilátoru gcc. Vektorizován byl vnitřní cyklus kódu, který počítá to jak se částice navzájem ovlivňují. Vektorizace tohoto úseku kódu má velký vliv na výkonost. Zrychlení je způsobeno tím, že v tomto úseku kódu je třeba počítat vzdálenost 2 částic. V tomto výpočtu figuruje inverzní odmocnina. Díky vektorizaci lze spočítat inverzní odmocninu rychleji a zároveň  lze počítat několik hodnot najednou.
+Kompilátor icc provedl automatickou vektorizaci, při které došlo k vektorizaci stejného bloku kódu jako u kompilátoru g++. Vektorizován byl vnitřní cyklus kódu, který počítá to jak se částice navzájem ovlivňují. Vektorizace tohoto úseku kódu má velký vliv na výkonost. Zrychlení je způsobeno tím, že v tomto úseku kódu je třeba počítat vzdálenost 2 částic. V tomto výpočtu figuruje inverzní odmocnina. Díky vektorizaci lze spočítat inverzní odmocninu rychleji a zároveň  lze počítat několik hodnot najednou.
 
 \subsection{Výsledky měření bez vektorizace}
+V této sekci jsou uvedeny tabulkově výsledky měření podle počtu vláken pro jednotlivá měření.
+Měření je graficky znázorněno v předposlední sekci věnované Xeonu Phi, kde je zároveń i grafické porovnání s variantou s vektorizací a grafy paralelního zrychlení.
 %
 % 1. měření
 %
@@ -467,13 +469,6 @@ Kompilátor icc provedl automatickou vektorizaci, při které došlo k vektoriza
 \end{tabular}
 \captionof{table}{Časy 1. měření}
 \end{center}
-
-\begin{figure}[H]
-  \begin{center}
-      \includegraphics[width=12cm]{images/phi1.png}	
-    \caption{Měření 1. instance} 
-  \end{center}
-\end{figure}
 %
 % 2. měření
 %
@@ -486,13 +481,6 @@ Kompilátor icc provedl automatickou vektorizaci, při které došlo k vektoriza
 \end{tabular}
 \captionof{table}{Časy 2. měření}
 \end{center}
-
-\begin{figure}[H]
-  \begin{center}
-      \includegraphics[width=12cm]{images/phi2.png}	
-    \caption{Měření 2. instance} 
-  \end{center}
-\end{figure}
 %
 % 3. měření
 %
@@ -505,13 +493,6 @@ Kompilátor icc provedl automatickou vektorizaci, při které došlo k vektoriza
 \end{tabular}
 \captionof{table}{Časy 3. měření}
 \end{center}
-
-\begin{figure}[H]
-  \begin{center}
-      \includegraphics[width=12cm]{images/phi3.png}	
-    \caption{Měření 3. instance} 
-  \end{center}
-\end{figure}
 %
 % 4. měření
 %
@@ -525,14 +506,9 @@ Kompilátor icc provedl automatickou vektorizaci, při které došlo k vektoriza
 \captionof{table}{Časy 4. měření}
 \end{center}
 
-\begin{figure}[H]
-  \begin{center}
-      \includegraphics[width=12cm]{images/phi4.png}	
-    \caption{Měření 4. instance} 
-  \end{center}
-\end{figure}
-
 \subsection{Výsledky měření s vektorizací}
+V této sekci jsou výsledky jednotlivých měření s vektorizací.
+Grafické znázornění je v následující sekci, včetně grafů paralelního zrychlení.
 %
 % 1. měření
 %
@@ -545,13 +521,6 @@ Kompilátor icc provedl automatickou vektorizaci, při které došlo k vektoriza
 \end{tabular}
 \captionof{table}{Časy 1. měření}
 \end{center}
-
-\begin{figure}[H]
-  \begin{center}
-      \includegraphics[width=12cm]{images/phi1.png}	
-    \caption{Měření 1. instance} 
-  \end{center}
-\end{figure}
 %
 % 2. měření
 %
@@ -564,13 +533,6 @@ Kompilátor icc provedl automatickou vektorizaci, při které došlo k vektoriza
 \end{tabular}
 \captionof{table}{Časy 2. měření}
 \end{center}
-
-\begin{figure}[H]
-  \begin{center}
-      \includegraphics[width=12cm]{images/phi2.png}	
-    \caption{Měření 2. instance} 
-  \end{center}
-\end{figure}
 %
 % 3. měření
 %
@@ -583,13 +545,6 @@ Kompilátor icc provedl automatickou vektorizaci, při které došlo k vektoriza
 \end{tabular}
 \captionof{table}{Časy 3. měření}
 \end{center}
-
-\begin{figure}[H]
-  \begin{center}
-      \includegraphics[width=12cm]{images/phi3.png}	
-    \caption{Měření 3. instance} 
-  \end{center}
-\end{figure}
 %
 % 4. měření
 %
@@ -603,13 +558,99 @@ Kompilátor icc provedl automatickou vektorizaci, při které došlo k vektoriza
 \captionof{table}{Časy 4. měření}
 \end{center}
 
+\subsection{Grafické porovnání obou variant}
+V této sekci jsou do grafů vyneseny časy z jednotlivých měření pro Xeon Phi, v každém grafu je vynesen čas jak pro variantu bez vektorizace, tak s vektorizací.
+Poté následují grafy paralelního zrychlení pro jednotlivá měření, opět s porovnáním obou variant.
+%
+% 1. měření - časy
+%
+\begin{figure}
+  \begin{center}
+      \includegraphics[width=12cm]{images/phi/phi1t.png}	
+    \caption{Porovnání implementací dle výpočetního času, měření 1}
+  \end{center}
+\end{figure}
+%
+% 2. měření - časy
+%
+\begin{figure}
+  \begin{center}
+      \includegraphics[width=12cm]{images/phi/phi2t.png}	
+    \caption{Porovnání implementací dle výpočetního času, měření 2}
+  \end{center}
+\end{figure}
+%
+% 3. měření - časy
+%
+\begin{figure}
+  \begin{center}
+      \includegraphics[width=12cm]{images/phi/phi3t.png}	
+    \caption{Porovnání implementací dle výpočetního času, měření 3}
+  \end{center}
+\end{figure}
+%
+% 4. měření - časy
+%
+\begin{figure}
+  \begin{center}
+      \includegraphics[width=12cm]{images/phi/phi4t.png}	
+    \caption{Porovnání implementací dle výpočetního času, měření 4}
+  \end{center}
+\end{figure}
+%
+% 1. měření - zrychlení
+%
+\begin{figure}
+  \begin{center}
+      \includegraphics[width=12cm]{images/phi/phi1acc.png}	
+    \caption{Porovnání implementací dle zrychlení, měření 1}
+  \end{center}
+\end{figure}
+%
+% 2. měření - zrychlení
+%
+\begin{figure}
+  \begin{center}
+      \includegraphics[width=12cm]{images/phi/phi2acc.png}	
+    \caption{Porovnání implementací dle zrychlení, měření 2}
+  \end{center}
+\end{figure}
+%
+% 3. měření - zrychlení
+%
+\begin{figure}
+  \begin{center}
+      \includegraphics[width=12cm]{images/phi/phi3acc.png}	
+    \caption{Porovnání implementací dle zrychlení, měření 3}
+  \end{center}
+\end{figure}
+%
+% 4. měření - zrychlení
+%
 \begin{figure}[H]
   \begin{center}
-      \includegraphics[width=12cm]{images/phi4.png}	
-    \caption{Měření 4. instance} 
+      \includegraphics[width=12cm]{images/phi/phi4acc.png}	
+    \caption{Porovnání implementací dle zrychlení, měření 4}
   \end{center}
 \end{figure}
 
+
+
+
+
+\subsection{Vyhodnocení měření}
 Ve všech měřeních byl výpočet na Xeonu Phi rychlejší než výpočet provedený na klasických procesorech.
+O kolik rychlejší pak záleželo na vektorizaci.
+Bez vektorizace dosahovalo zrychlení hodnot až 7,8 v měření č. 4.
+S vektorizací bylo dosaženo zrychlení až 63 v měření č. 4.
+Lineárního zrychlení dosaženo nebylo.
+
+Zrychlení v měření 1 a 2 v obou variantách dosahovalo znatelně nižších hodnot,
+program bez vektorizace byl při některých počtech vláken dokonce rychlejší než varianta s vektorizací.
+
+V měřeních 3 a 4 se naopak hodně ukázala síla vektorizace, kdy zrychlení dosahovalo řádově několika desítek, naproti tomu varianta bez vektorizace pouze v řádu jednotek.
+
+Celkově dopadlo měření podle očekávání.
+Kompilátor provedl vektorizaci podobným způsobem jako kompilátor pro klasické procesory, algoritmus ovšem dokázal zužitkovat všech 244 vláken Xeonu Phi a čas výpočtu simulace tak byl výrazně nižší.
 
 \end{document}
