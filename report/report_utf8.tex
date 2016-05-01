@@ -135,6 +135,8 @@ Na konci sekce je porovnání a vyhodnocení měření.
 
 \subsection{Měření pro variantu 2}
 Varianta 2 využívá automatické vektorizace. % (-O3) a SSE instrukce pro výpočet ${\frac{1}{\sqrt{x}}}$.
+\begin{table}[H]
+\parbox{.45\linewidth}{
 %
 % 1. měření
 %
@@ -151,13 +153,9 @@ Varianta 2 využívá automatické vektorizace. % (-O3) a SSE instrukce pro výp
 \end{tabular}
 \captionof{table}{Časy 1. měření}
 \end{center}
-
-\begin{figure}[H]
-  \begin{center}
-     \includegraphics[width=12cm]{images/auto1.png}
-    \caption{Měření 1. instance} 
-  \end{center}
-\end{figure}
+}
+\hfill
+\parbox{.45\linewidth}{
 %
 % 2. měření
 %
@@ -174,13 +172,10 @@ Varianta 2 využívá automatické vektorizace. % (-O3) a SSE instrukce pro výp
 \end{tabular}
 \captionof{table}{Časy 2. měření}
 \end{center}
-
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=12cm]{images/auto2.png}
-    \caption{Měření 2. instance} 
-  \end{center}
-\end{figure}
+}
+\end{table}
+\begin{table}[H]
+\parbox{.45\linewidth}{
 %
 % 3. měření
 %
@@ -197,13 +192,9 @@ Varianta 2 využívá automatické vektorizace. % (-O3) a SSE instrukce pro výp
 \end{tabular}
 \captionof{table}{Časy 3. měření}
 \end{center}
-
-\begin{figure}[H]
-  \begin{center}
-     \includegraphics[width=12cm]{images/auto3.png}
-    \caption{Měření 3. instance} 
-  \end{center}
-\end{figure}
+}
+\hfill
+\parbox{.45\linewidth}{
 %
 % 4. měření
 %
@@ -220,11 +211,13 @@ Varianta 2 využívá automatické vektorizace. % (-O3) a SSE instrukce pro výp
 \end{tabular}
 \captionof{table}{Časy 4. měření}
 \end{center}
+}
+\end{table}
 
 \begin{figure}[H]
   \begin{center}
-     \includegraphics[width=12cm]{images/auto4.png}
-    \caption{Měření 4. instance} 
+     \includegraphics[width=12cm]{images/sdruzene/openmp/autotime.png}
+    \caption{Výsledky měření} 
   \end{center}
 \end{figure}
 
@@ -235,34 +228,15 @@ Lineárního zrychlení dosaženo nebylo, jak je vidět z následujících graf�
 
 \begin{figure}[H]
   \begin{center}
-     \includegraphics[width=12cm]{images/auto1acc.png}
-    \caption{Paralelní zrychlení v 1. měření} 
-  \end{center}
-\end{figure}
-
-\begin{figure}[H]
-  \begin{center}
-     \includegraphics[width=12cm]{images/auto2acc.png}
-    \caption{Paralelní zrychlení v 2. měření} 
-  \end{center}
-\end{figure}
-
-\begin{figure}
-  \begin{center}
-     \includegraphics[width=12cm]{images/auto3acc.png}
-    \caption{Paralelní zrychlení v 3. měření} 
-  \end{center}
-\end{figure}
-
-\begin{figure}[H]
-  \begin{center}
-     \includegraphics[width=12cm]{images/auto4acc.png}
-    \caption{Paralelní zrychlení v 4. měření} 
+     \includegraphics[width=12cm]{images/sdruzene/openmp/autoacc.png}
+    \caption{Paralelní zrychlení} 
   \end{center}
 \end{figure}
 
 \subsection{Měření pro variantu 3}
 Ve třetí variantě (V3) je automatická optimalizace, automatická a ruční vektorizace, mj. SSE datové typy~\_\_m128 a SSE in\-struk\-ce pro výpočet ${\frac{1}{\sqrt{x}}}$.
+\begin{table}[H]
+\parbox{.45\linewidth}{
 %
 % 1. měření
 %
@@ -279,13 +253,8 @@ Ve třetí variantě (V3) je automatická optimalizace, automatická a ruční v
 \end{tabular}
 \captionof{table}{Časy 1. měření}
 \end{center}
-
-\begin{figure}[H]
-  \begin{center}
-     \includegraphics[width=12cm]{images/ssef1.png}
-    \caption{Měření 1. instance} 
-  \end{center}
-\end{figure}
+} \hfill
+\parbox{.45\linewidth}{
 %
 % 2. měření
 %
@@ -302,13 +271,11 @@ Ve třetí variantě (V3) je automatická optimalizace, automatická a ruční v
 \end{tabular}
 \captionof{table}{Časy 2. měření}
 \end{center}
+}
+\end{table}
 
-\begin{figure}[H]
-  \begin{center}
-      \includegraphics[width=12cm]{images/ssef2.png}
-    \caption{Měření 2. instance} 
-  \end{center}
-\end{figure}
+\begin{table}[H]
+\parbox{.45\linewidth}{
 %
 % 3. měření
 %
@@ -325,13 +292,8 @@ Ve třetí variantě (V3) je automatická optimalizace, automatická a ruční v
 \end{tabular}
 \captionof{table}{Časy 3. měření}
 \end{center}
-
-\begin{figure}[H]
-  \begin{center}
-      \includegraphics[width=12cm]{images/ssef3.png}	
-    \caption{Měření 3. instance} 
-  \end{center}
-\end{figure}
+} \hfill
+\parbox{.45\linewidth}{
 %
 % 4. měření
 %
@@ -348,11 +310,13 @@ Ve třetí variantě (V3) je automatická optimalizace, automatická a ruční v
 \end{tabular}
 \captionof{table}{Časy 4. měření}
 \end{center}
+}
+\end{table}
 
 \begin{figure}[H]
   \begin{center}
-      \includegraphics[width=12cm]{images/ssef4.png}	
-    \caption{Měření 4. instance} 
+     \includegraphics[width=12cm]{images/sdruzene/openmp/mantime.png}
+    \caption{Výsledky měření} 
   \end{center}
 \end{figure}
 
@@ -362,31 +326,11 @@ Následují grafy paralelního zrychlení.
 
 \begin{figure}[H]
   \begin{center}
-     \includegraphics[width=12cm]{images/ssef1acc.png}
-    \caption{Paralelní zrychlení v 1. měření} 
+     \includegraphics[width=12cm]{images/sdruzene/openmp/manacc.png}
+    \caption{Paralelní zrychlení} 
   \end{center}
 \end{figure}
 
-\begin{figure}[H]
-  \begin{center}
-     \includegraphics[width=12cm]{images/ssef2acc.png}
-    \caption{Paralelní zrychlení ve 2. měření} 
-  \end{center}
-\end{figure}
-
-\begin{figure}[H]
-  \begin{center}
-     \includegraphics[width=12cm]{images/ssef3acc.png}
-    \caption{Paralelní zrychlení ve 3. měření} 
-  \end{center}
-\end{figure}
-
-\begin{figure}[H]
-  \begin{center}
-     \includegraphics[width=12cm]{images/ssef4acc.png}
-    \caption{Paralelní zrychlení ve 4. měření} 
-  \end{center}
-\end{figure}
 
 % Analýza a hodnocení vlastností dané implementace programu.
 \subsection{Porovnání jednotlivých implementací}
@@ -404,7 +348,7 @@ Varianta 3 také těžila z velmi dobrého sekvenčního času, který předčil
 
 Dále jsou uvedeny grafy porovnávající variantu 2 a 3, ukazují vliv vektorizace na rychlost výpočtu.
 
-\begin{figure}
+\begin{figure}[H]
   \begin{center}
       \includegraphics[width=12cm]{images/vs1.png}	
     \caption{Porovnání implementací, měření 1} 
@@ -457,6 +401,8 @@ Kompilátor icc provedl automatickou vektorizaci, při které došlo k vektoriza
 \subsection{Výsledky měření bez vektorizace}
 V této sekci jsou uvedeny tabulkově výsledky měření podle počtu vláken pro jednotlivá měření.
 Měření je graficky znázorněno v předposlední sekci věnované Xeonu Phi, kde je zároveň i grafické porovnání s variantou s vektorizací a grafy paralelního zrychlení.
+\begin{table}[H]
+\parbox{.45\linewidth}{
 %
 % 1. měření
 %
@@ -469,6 +415,9 @@ Měření je graficky znázorněno v předposlední sekci věnované Xeonu Phi, 
 \end{tabular}
 \captionof{table}{Časy 1. měření}
 \end{center}
+}
+\hfill
+\parbox{.45\linewidth}{
 %
 % 2. měření
 %
@@ -481,6 +430,11 @@ Měření je graficky znázorněno v předposlední sekci věnované Xeonu Phi, 
 \end{tabular}
 \captionof{table}{Časy 2. měření}
 \end{center}
+}
+\end{table}
+
+\begin{table}[H]
+\parbox{.45\linewidth}{
 %
 % 3. měření
 %
@@ -493,6 +447,9 @@ Měření je graficky znázorněno v předposlední sekci věnované Xeonu Phi, 
 \end{tabular}
 \captionof{table}{Časy 3. měření}
 \end{center}
+}
+\hfill
+\parbox{.45\linewidth}{
 %
 % 4. měření
 %
@@ -505,10 +462,14 @@ Měření je graficky znázorněno v předposlední sekci věnované Xeonu Phi, 
 \end{tabular}
 \captionof{table}{Časy 4. měření}
 \end{center}
+}
+\end{table}
 
 \subsection{Výsledky měření s vektorizací}
 V této sekci jsou výsledky jednotlivých měření s vektorizací.
 Grafické znázornění je v následující sekci, včetně grafů paralelního zrychlení.
+\begin{table}[H]
+\parbox{.45\linewidth}{
 %
 % 1. měření
 %
@@ -521,6 +482,9 @@ Grafické znázornění je v následující sekci, včetně grafů paralelního 
 \end{tabular}
 \captionof{table}{Časy 1. měření}
 \end{center}
+}
+\hfill
+\parbox{.45\linewidth}{
 %
 % 2. měření
 %
@@ -533,6 +497,11 @@ Grafické znázornění je v následující sekci, včetně grafů paralelního 
 \end{tabular}
 \captionof{table}{Časy 2. měření}
 \end{center}
+}
+\end{table}
+
+\begin{table}[H]
+\parbox{.45\linewidth}{
 %
 % 3. měření
 %
@@ -545,9 +514,12 @@ Grafické znázornění je v následující sekci, včetně grafů paralelního 
 \end{tabular}
 \captionof{table}{Časy 3. měření}
 \end{center}
+} 
+\hfill
 %
 % 4. měření
 %
+\parbox{.45\linewidth}{
 \begin{center}
 \begin{tabular}{ c | c }
 \textbf{Počet vláken} & \textbf{Naměřený čas} \\ \hline \hline 
@@ -556,89 +528,50 @@ Grafické znázornění je v následující sekci, včetně grafů paralelního 
 244 & 11.387652s \\ \hline
 \end{tabular}
 \captionof{table}{Časy 4. měření}
-\end{center}
+\end{center}}
+\end{table}
 
-\subsection{Grafické porovnání obou variant}
-V této sekci jsou do grafů vyneseny časy z jednotlivých měření pro Xeon Phi, v každém grafu je vynesen čas jak pro variantu bez vektorizace, tak s vektorizací.
-Poté následují grafy paralelního zrychlení pro jednotlivá měření, opět s porovnáním obou variant.
+\subsection{Grafické znázornění výsledků měření a paralelního zrychlení}
+V této sekci jsou do grafů vyneseny časy z jednotlivých měření pro Xeon Phi.
+Poté následují grafy paralelního zrychlení pro obě varianty.
 K výpočtu paralelního zrychlení byly použity sekvenční časy varianty 2 z měření pro klasické procesory,
 což byla verze s automatickými optimalizacemi a vektorizací provedené kompilátorem g++.
 %
-% 1. měření - časy
-%
-\begin{figure}
-  \begin{center}
-      \includegraphics[width=12cm]{images/phi/phi1t.png}	
-    \caption{Porovnání implementací dle výpočetního času, měření 1}
-  \end{center}
-\end{figure}
-%
-% 2. měření - časy
-%
-\begin{figure}
-  \begin{center}
-      \includegraphics[width=12cm]{images/phi/phi2t.png}	
-    \caption{Porovnání implementací dle výpočetního času, měření 2}
-  \end{center}
-\end{figure}
-%
-% 3. měření - časy
-%
-\begin{figure}
-  \begin{center}
-      \includegraphics[width=12cm]{images/phi/phi3t.png}	
-    \caption{Porovnání implementací dle výpočetního času, měření 3}
-  \end{center}
-\end{figure}
-%
-% 4. měření - časy
-%
-\begin{figure}
-  \begin{center}
-      \includegraphics[width=12cm]{images/phi/phi4t.png}	
-    \caption{Porovnání implementací dle výpočetního času, měření 4}
-  \end{center}
-\end{figure}
-%
-% 1. měření - zrychlení
-%
-\begin{figure}
-  \begin{center}
-      \includegraphics[width=12cm]{images/phi/phi1acc.png}	
-    \caption{Porovnání implementací dle zrychlení, měření 1}
-  \end{center}
-\end{figure}
-%
-% 2. měření - zrychlení
-%
-\begin{figure}
-  \begin{center}
-      \includegraphics[width=12cm]{images/phi/phi2acc.png}	
-    \caption{Porovnání implementací dle zrychlení, měření 2}
-  \end{center}
-\end{figure}
-%
-% 3. měření - zrychlení
-%
-\begin{figure}
-  \begin{center}
-      \includegraphics[width=12cm]{images/phi/phi3acc.png}	
-    \caption{Porovnání implementací dle zrychlení, měření 3}
-  \end{center}
-\end{figure}
-%
-% 4. měření - zrychlení
+% Bez vektorizace - časy
 %
 \begin{figure}[H]
   \begin{center}
-      \includegraphics[width=12cm]{images/phi/phi4acc.png}	
-    \caption{Porovnání implementací dle zrychlení, měření 4}
+      \includegraphics[width=12cm]{images/sdruzene/phi/novectime.png}
+    \caption{Výsledky měření bez vektorizace}
   \end{center}
 \end{figure}
-
-
-
-
+%
+% Bez vektorizace - zrychlení
+%
+\begin{figure}[H]
+  \begin{center}
+      \includegraphics[width=12cm]{images/sdruzene/phi/novecacc.png}	
+    \caption{Paralelní zrychlení bez vektorizace}
+  \end{center}
+\end{figure}
+%
+% Vektorizace - časy
+%
+\begin{figure}[H]
+  \begin{center}
+      \includegraphics[width=12cm]{images/sdruzene/phi/vectime.png}	
+    \caption{Výsledky měření s vektorizací}
+  \end{center}
+\end{figure}
+%
+% Vektorizace - zrychlení
+%
+\begin{figure}[H]
+  \begin{center}
+      \includegraphics[width=12cm]{images/sdruzene/phi/vecacc.png}	
+    \caption{Paralelní zrychlení s vektorizací}
+  \end{center}
+\end{figure}
 
 \subsection{Vyhodnocení měření}
 Ve všech měřeních byl výpočet na Xeonu Phi rychlejší než výpočet provedený na klasických procesorech.
