@@ -1,0 +1,21 @@
+řádky = popis
+25 - 34 = nové includy
+83 = změna parametrů funkce, místo SimConfig jsou max(X/Y/Z)
+83 + 87 + 94 = kompilují se pro host i device
+104 = error handler
+112 = ignorovat, lze smazat
+133 = jedno vlákno nakopíruje ve source do newCoords částici na pozici blockIdx.x * blockDim.x + threadIdx.x
+148 = sekvenční kopírování, 1 vlákno kopíruje celé pole (source -> newCoords)
+164 = výpočet zrychlení
+186 = jeden krok simulace pro 1 částici -> nutné spustit s počet vláken == počet částic
+258 = vypíše "n" prvních částic v glob. poli částic na GPU
+267 = main
+318 - 342 = příprava paměti pro GPU
+383 - 395 = výpočet # bloků a # vláken na blok
+397 - 407 = měření času přes OpenMP i přes funkce CUDA
+415 = spuštění kernelu pro výpočet 1 kroku simulace
+484 = kopie souřadnic částic v GPU paměti
+535 = kopie souřadnic GPU -> CPU
+542 - 562 = výpisy (zakomentováno)
+564 - 579 = ukončení měření času, výpis
+581 - 592 = uvolnění (snad všech) polí na CPU i GPU 
