@@ -163,37 +163,13 @@ __global__ void CopyCoordinatesKernelSeq(float4 * sourceCoords, float4 * newCoor
 
 __device__ float3 perParticleAcceleration(float4 first, float4 second, float3 aXYZ, float eps)
 {
-	float3 dXYZ;
-	dXYZ.x = first.x - second.x;
-	dXYZ.y = first.y - second.y;
-	dXYZ.z = first.z - second.z;
-
-	float tmp_sum = dXYZ.x * dXYZ.x + dXYZ.y * dXYZ.y + dXYZ.z * dXYZ.z + eps;
-	
-	//float invr = 1/sqrtf(tmp_sum);
-	float invr = rsqrtf(tmp_sum);
-
-	float invr3 = invr*invr*invr;
-
-	float f = F_QUOC * second.w * invr3;
-
-	aXYZ.x += dXYZ.x * f;
-	aXYZ.y += dXYZ.y * f;
-	aXYZ.z += dXYZ.z * f;
-	return aXYZ;
-}
-
-__global__ void OneStepSimulation(float4 * sourceCoords, float4 * newCoords,
-	float4 * velocities, float eps, float dt, int n, int offset,
-	const float maxX, const float maxY, const float maxZ)
-{
 	int globalThreadIndex = blockIdx.x * blockDim.x + threadIdx.x;
 	if (globalThreadIndex >= n) return;
 
 	// shared memory - used to cache particles from global memory
 	extern __shared__ float4 particlesInSM[];
 	// pointer to array of particles in global memory 
-	float4 * particlesGlobal = (float4 *) sourceCoords;
+	float4 * particlesGlobal = sourceCoords;
 	// iterators
 	int i = 0; // iterator for particles, (for each particle ... (from 1 .. n))
 	int blok = 0; // iterator for current block
@@ -203,6 +179,12 @@ __global__ void OneStepSimulation(float4 * sourceCoords, float4 * newCoords,
 
 	// control output
 	//if (globalThreadIndex == 1) printf("%f %f %f %f\n", threadVector.x, threadVector.y, threadVector.z, threadVector.w);
+
+	// pre-declaration of variables
+	float3 dXYZ; // only assigned to, should be OK
+	float tmp_sum; // only assigned to, should be OK
+	float invr, invr3; // only assigned to, should be OK
+	float f; // only assigned to, should be OK
 
 	// for each particle ...
 	for (i = 0; i < n; i += offset) { // offset == threadsPerBlock specified in calling of the kernel
@@ -214,15 +196,32 @@ __global__ void OneStepSimulation(float4 * sourceCoords, float4 * newCoords,
 		__syncthreads(); // wait for every thread so the SM is full
 
 		// count current subblock
-		for (int j = 0; j < blockDim.x; j++) {
-			aXYZ = perParticleAcceleration(threadVector, particlesInSM[j], aXYZ, eps);
+		for (int j = 0; j < blockDim.x; j++) { // !!! this might cause problems, will work ONLY if every thread in this block copied particle to SM !!!
+			
+			dXYZ.x = threadVector.x - particlesInSM[j].x;
+			dXYZ.y = threadVector.y - particlesInSM[j].y;
+			dXYZ.z = threadVector.z - particlesInSM[j].z;
+
+			tmp_sum = dXYZ.x * dXYZ.x + dXYZ.y * dXYZ.y + dXYZ.z * dXYZ.z + eps;
+
+			//float invr = 1/sqrtf(tmp_sum);
+			invr = rsqrtf(tmp_sum);
+
+			invr3 = invr*invr*invr;
+
+			f = F_QUOC * particlesInSM[j].w * invr3;
+
+			aXYZ.x += dXYZ.x * f;
+			aXYZ.y += dXYZ.y * f;
+			aXYZ.z += dXYZ.z * f;
+			//aXYZ = perParticleAcceleration(threadVector, particlesInSM[j], aXYZ, eps);
 		}
 		
 		__syncthreads(); // wait for every thread so the SM is free to be edited
 		blok++;
 	}
 	// load velocity from global memory
-	float4 vel = ((float4 *)velocities)[globalThreadIndex];
+	float4 vel = velocities[globalThreadIndex];
 	// update velocity
 	vel.x += dt*aXYZ.x; /* update velocity of particle "i" */
 	vel.y += dt*aXYZ.y;
@@ -249,10 +248,10 @@ __global__ void OneStepSimulation(float4 * sourceCoords, float4 * newCoords,
 	}
 
 	// store new velocities in global memory
-	((float4 *) velocities)[globalThreadIndex] = vel;
+	velocities[globalThreadIndex] = vel;
 
 	// store updated position in global memory - array "(x/y/z)new"
-	((float4 *)newCoords)[globalThreadIndex] = newVec;
+	newCoords[globalThreadIndex] = newVec;
 }
 
 __global__ void GPUPrintParticles(float4 * particles, int n)
@@ -384,13 +383,35 @@ int main(int argc, char** argv) {
 	cudaDeviceProp prop;
 	HANDLE_ERROR(cudaGetDeviceProperties(&prop, 0)); // get device properties
 
-	int threadsPerBlock = (prop.maxThreadsPerBlock / 2); // should be power of 2
+	int threadsPerBlock = 0, numOfBlocks = 0;
+
+
+	/* ----------------------------------------------------- */
+	/*numOfBlocks = 32; // problem if (sconf.amount / numOfBlocks) != X.000000000
+	threadsPerBlock = ((sconf.amount) / numOfBlocks);
+	if (threadsPerBlock > prop.maxThreadsPerBlock)
+	{
+		printf("NOPE NOPE NOPE");
+	}*/
+	/* ----------------------------------------------------- */
+	
+
+	/* ----------------------------------------------------- */
+	
+	// One possible configuration of blocks and threads - uses less processors than it might 
+	threadsPerBlock = (prop.maxThreadsPerBlock / 2); // should be power of 2
 	// why only half of max - SM has limited amount of registers etc.
 	// if limits reached -> kernel will not start (HANDLE_ERROR(startkernel<<<>>>()) will detect and print out this error)
 	// /2 is just a working guess, may be optimized
 
-	int numOfBlocks = ((sconf.amount-1) / threadsPerBlock);
+	numOfBlocks = ((sconf.amount-1) / threadsPerBlock);
 	numOfBlocks += 1; // amount = 1024, maxThreadsPerBlock = 1024 -> 2 blocks, both only half of max threads
+	
+	/* ----------------------------------------------------- */
+
+
+
+
 
 	printf("Amount of blocks: %d\n", numOfBlocks);
 
@@ -405,6 +426,11 @@ int main(int argc, char** argv) {
 	cudaEventRecord(start); 
 	// Start OpenMP time measurement
 	double t1 = omp_get_wtime();
+
+
+
+	#define WITH_CPU // simulation on CPU is on
+
 
 	#ifdef LOGGING
 	printf("Starting simulation ...\n");
