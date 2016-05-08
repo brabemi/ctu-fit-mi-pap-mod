@@ -395,7 +395,6 @@ Měření proběhlo na stejných datech, pro připomenutí jsou jednotlivá zad�
 \end{center}
 
 \subsection{Vektorizace}
-
 Kompilátor icc provedl automatickou vektorizaci, při které došlo k vektorizaci stejného bloku kódu jako u kompilátoru g++. Vektorizován byl vnitřní cyklus kódu, který počítá to jak se částice navzájem ovlivňují. Vektorizace tohoto úseku kódu má velký vliv na výkonost. Zrychlení je způsobeno tím, že v tomto úseku kódu je třeba počítat vzdálenost 2 částic. V tomto výpočtu figuruje inverzní odmocnina. Díky vektorizaci lze spočítat inverzní odmocninu rychleji a zároveň  lze počítat několik hodnot najednou.
 
 \subsection{Výsledky měření bez vektorizace}
@@ -587,5 +586,88 @@ V měřeních 3 a 4 se naopak hodně ukázala síla vektorizace, kdy zrychlení 
 
 Celkově dopadlo měření podle očekávání.
 Kompilátor provedl vektorizaci podobným způsobem jako kompilátor pro klasické procesory, algoritmus ovšem dokázal zužitkovat všech 244 vláken Xeonu Phi a čas výpočtu simulace tak byl výrazně nižší.
+
+\section{Naměřené výs\-led\-ky a vyhod\-noce\-ní pro CUDA}
+Implementace pomocí CUDa vycházela z původního sekvenčního algoritmu.
+Paralelizace byla provedena jiným způsobem, než v předchozích implementacích pro Xeon Phi a klasické procesory.
+
+\subsection{Popis implementace}
+V této sekci je popis implementace za použití technologie CUDA.
+
+Zparalelizován byl vnější cyklus výpočtu nových pozic částic tak,
+aby každé vlákno dostalo svou jednu částici a
+pro tuto částici vypočetlo zrychlení
+(vnitřní cyklus simulace - ten, který se prováděl paralelně v implementacích pro Xeon Phi a klasické procesory).
+Důvodem změny paralelizovaného cyklu byla omezená velikost sdílené paměti multiprocesoru,
+pomalejší čtení z globální paměti a nutnost paralelní redukce (případně i nad globální paměti) jednotlivých zrychlení, resp. vektorů zrychlení.
+
+Co se týče využití globální paměti, v té jsou uloženy souřadnice částic jako vektor typu float4 (x, y, z, hmotnost) a rychlosti částic jako typ float4 (vx, vy, vz, 0).
+Důvod volby typu float4 je v čtení všech informací o částici v jednom jediném čtení z globální paměti a čtení z paměti po 128B.
+Tato úprava vyžadovala vytvořit převodník mezi formátem několika za sebou jdoucích lineárních polích (jednotlivě pro x, y, z, atd.) do float4 (x,y,z,m) a (vx, vy, vz, 0).
+
+Sdílená paměť se využívá jako cache pro částice z globální paměti.
+Každé vlákno ve svém bloku přečte částici z globální paměti na indexu vypočteném z indexu daného vlákna a sub-bloku.
+Sub-blok značí aktuální podmnožinu částic, jejichž vliv se v aktuální iteraci připočítává k částici vlákna.
+Dále částici uloží do sdílené paměti na indexu rovném indexu vlákna.
+Poté, co každé vlákno bloku toto čtení a uložení provede, začne každé vlákno počítat vlivy ostatních částic na svou přidruženou částici,
+přičemž informace o ostatních částicích bere právě z rychlejší sdílené paměti, nikoliv z globální.
+
+Čtení/zápis z/do globální paměti je tedy nutný v každém jednom vlákně v každém kroku simulace,
+ale díky využití typu float4 a sdílené paměti by měla být doba přístupu a počet přístupů do globální paměti výrazně nižší.
+
+Vizualizace řešení je stejná jako v předchozích variantách
+- přes gnuplot (program vytvoří zdrojový kód pro gnuplot, vygenerovat graf je potřeba ručně).
+Dále je možné vizualizovat přímo za běhu simulace přes knihovnu CImg, kdy je ale celkem velká režie v samotném vykreslování a přenosu dat z GPU na CPU.
+
+\subsection{Nastavení kompilátoru}
+Ke kompilaci byl použit kompilátor g++ a nvcc. za zmínku stojí využití přepínače -O3, tedy optimalizace.
+OpenMP bylo přilinkováno kvůli měření času (ten byl měřen jak přes cudaEvent, tak přes omp\_get\_wtime()).
+
+Příkazy pro kompilaci pro celý program byly následující:
+\begin{verbatim}
+g++ ./generator/ioproc.cpp -c -o ioproc.o;
+g++ ./generator/SimConfig.cpp -c -o SimConfig.o
+nvcc -O3 ./main.cu -c -o main.o -Xcompiler -fopenmp
+
+nvcc -O3 ioproc.o SimConfig.o main.o -o \
+  simulator -Xcompiler -fopenmp -lcuda -lcudart -lgomp
+\end{verbatim}
+
+\subsection{Měřené instance}
+Měření proběhlo na stejných datech jako pro Xeon Phi a vektorizované implementace pro klasické procesory.
+Pro připomenutí jsou jednotlivá zadání uvedena v následující tabulce.
+
+\begin{center}
+\begin{tabular}{c | c | c | c}
+\textbf{Měření} & \textbf{Počet částic} & \textbf{Počet kroků sim.} & \textbf{Výpočetní náročnost} \\ \hline \hline
+1 & 1024 & 150 000 & 157,284 \\ \hline
+2 & 512 & 1 200 000 & 314,571 \\ \hline
+3 & 4096 & 15 000 & 251,412 \\ \hline
+4 & 8192 & 4 500 & 301.989 \\ \hline
+\end{tabular}
+\captionof{table}{Zadání jednotlivých měření}
+\end{center}
+
+\subsection{Konfigurace bloků a vláken}
+Byly zvoleny celkem 3 konfigurace bloků a vláken.
+
+První konfigurace měla přiřadit co možná nejvíc vláken každému jednotlivému bloku, počet bloků se poté dopočítal.
+Počet vláken na 1 blok jsme nastavili na polovinu maximálního počtu, co dovolovalo zařízení.
+Volba poloviny max. počtu je kvůli dalším HW omezením - při vyšších počtech vláken na blok nebylo dost registrů apod.
+
+Druhá konfigurace měla každému dostupnému procesoru přiřadit právě jeden blok, počet vláken na blok se následně dopočítal.
+Tato konfigurace má nevýhodu v počtu vláken - může vznikout blok o malém počtu vláken, resp. warp s několika málo vlákny.
+Další riziko bylo v přetečení počtu vláken v posledním bloku - na každé vlákno nemusela vyjít částice.
+Tento problém byl vyřešen přes podmínku a dopočet horní hranice, s důsledkem možného dělení warpu.
+
+Cílem třetí konfigurace bylo rozdělit práci mezi bloky v násobcích maximálního počtu vláken v jednom warpu.
+Tj. počet vláken na blok byl daný, počet bloků se dopočítal.
+
+\subsection{Výsledky měření}
+
+
+\subsection{Vyhodnocení}
+
+
 
 \end{document}
