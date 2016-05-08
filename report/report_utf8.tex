@@ -588,7 +588,7 @@ Celkově dopadlo měření podle očekávání.
 Kompilátor provedl vektorizaci podobným způsobem jako kompilátor pro klasické procesory, algoritmus ovšem dokázal zužitkovat všech 244 vláken Xeonu Phi a čas výpočtu simulace tak byl výrazně nižší.
 
 \section{Naměřené výs\-led\-ky a vyhod\-noce\-ní pro CUDA}
-Implementace pomocí CUDa vycházela z původního sekvenčního algoritmu.
+Implementace pomocí CUDA vycházela z původního sekvenčního algoritmu.
 Paralelizace byla provedena jiným způsobem, než v předchozích implementacích pro Xeon Phi a klasické procesory.
 
 \subsection{Popis implementace}
@@ -601,9 +601,9 @@ pro tuto částici vypočetlo zrychlení
 Důvodem změny paralelizovaného cyklu byla omezená velikost sdílené paměti multiprocesoru,
 pomalejší čtení z globální paměti a nutnost paralelní redukce (případně i nad globální paměti) jednotlivých zrychlení, resp. vektorů zrychlení.
 
-Co se týče využití globální paměti, v té jsou uloženy souřadnice částic jako vektor typu float4 (x, y, z, hmotnost) a rychlosti částic jako typ float4 (vx, vy, vz, 0).
+Co se týče využití globální paměti, v té jsou uloženy souřadnice částic jako vektor typu float4 (x,~y,~z,~hmotnost) a rychlosti částic jako typ float4 (vx,~vy,~vz,~0).
 Důvod volby typu float4 je v čtení všech informací o částici v jednom jediném čtení z globální paměti a čtení z paměti po 128B.
-Tato úprava vyžadovala vytvořit převodník mezi formátem několika za sebou jdoucích lineárních polích (jednotlivě pro x, y, z, atd.) do float4 (x,y,z,m) a (vx, vy, vz, 0).
+Tato úprava vyžadovala vytvořit převodník mezi formátem několika za sebou jdoucích lineárních polích (jednotlivě pro x, y, z, atd.) do float4 (x,~y,~z,~m) a (vx,~vy,~vz,~0).
 
 Sdílená paměť se využívá jako cache pro částice z globální paměti.
 Každé vlákno ve svém bloku přečte částici z globální paměti na indexu vypočteném z indexu daného vlákna a sub-bloku.
