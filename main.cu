@@ -8,7 +8,7 @@
 //~ #define SSE_SQRT
 
 #define LOGGING // all logging output except for the line with "#THREADS #SECONDS" info
-//#undef LOGGING
+#undef LOGGING
 
 #ifdef CIMG_VISUAL
 #include "CImg/CImg.h" // lib for visualisation
@@ -80,7 +80,7 @@ using namespace cimg_library; // -> no need to use cimg_library::function()
 using namespace std;
 #endif
 
-__device__ __host__ bool bounce(float x, float y, float z, const float maxX, const float maxY, const float maxZ) {
+__device__ __host__ float bounce(float x, float y, float z, const float maxX, const float maxY, const float maxZ) {
 	return (x < 0) || (maxX < x) || (y < 0) || (maxY < y) || (z < 0) || (maxZ < z);
 }
 
@@ -108,27 +108,6 @@ static void HandleError(cudaError_t err, const char * file, int line){
 	}
 }
 #define HANDLE_ERROR( err ) (HandleError(err, __FILE__, __LINE__))
-
-#ifdef ASDJKOASKD
-__global__ void CopyCoordinatesKernel (float * x, float * y, float * z,
-	const float * xnew, const float * ynew, const float * znew,
-	const int n,
-	const float maxX, const float maxY, const float maxZ)
-{
-	int i;
-	for (i = 0; i<n; i++) { /* copy updated positions back into original arrays */
-		if (bounce(xnew[i], ynew[i], znew[i], maxX, maxY, maxZ)) {
-		#ifdef LOGGING
-			printf("Particle %d out of borders (x, y, z) = (%0.3f, %0.3f, %0.3f)\n", i, xnew[i], ynew[i], znew[i]);
-		#endif
-		}
-		x[i] = xnew[i];
-		y[i] = ynew[i];
-		z[i] = znew[i];
-	}
-}
-#endif
-
 
 __global__ void CopyCoordinatesKernel(float4 * sourceCoords, float4 * newCoords, int n)
 {
@@ -184,10 +163,11 @@ __device__ float3 perParticleAcceleration(float4 first, float4 second, float3 aX
 	return aXYZ;
 }
 
-#define DEFAULT // which kind of work distribution is selected
+#define OBOC // which kind of work distribution is selected
 
 __global__ void OneStepSimulation(float4 * sourceCoords, float4 * newCoords,
-	float4 * velocities, float eps, float dt, int n, int offset,
+	float4 * velocities, float eps, float dt, 
+	int n, int offset,
 	const float maxX, const float maxY, const float maxZ)
 {
 	int globalThreadIndex = blockIdx.x * blockDim.x + threadIdx.x;
@@ -343,15 +323,15 @@ int main(int argc, char** argv) {
 	float * vx = sconf.vx;
 	float * vy = sconf.vy;
 	float * vz = sconf.vz;
-
+#ifdef WITH_CPU
 	float * xnew = new float[sconf.amount];
 	float * ynew = new float[sconf.amount];
 	float * znew = new float[sconf.amount];
-	
+#endif
 	// create an array that is in form suitable for float4 == 1 particle
 	float * hostParticles = new float[sconf.amount * 4]; // x y z m
 	float * hostVelocities = new float[sconf.amount * 4]; // vx vy vz 0
-	for (int i = 0; i < (sconf.amount); i++)
+	for (i = 0; i < (sconf.amount); i++)
 	{
 		int base = i * 4;
 		hostParticles[base + 0] = x[i];
@@ -374,12 +354,13 @@ int main(int argc, char** argv) {
 	HANDLE_ERROR(cudaMemcpy(devParticles, hostParticles, (4 * sconf.amount), cudaMemcpyHostToDevice));
 	HANDLE_ERROR(cudaMemcpy(devVelocities, hostVelocities, (4 * sconf.amount), cudaMemcpyHostToDevice));
 
+#ifdef WITH_CPU
 	// variables used in computations
 	float ax, ay, az;
 	float dx, dy, dz;
 	float invr, invr3;
 	float f;
-	
+#endif
 	// definitino of "n" - used in algorithm on site
 	int n = sconf.amount;
 	
@@ -412,9 +393,6 @@ int main(int argc, char** argv) {
 	#endif
 
 	unsigned steps = 0;
-
-
-
 
 	// count amount of blocks and threads needed
 	cudaDeviceProp prop;
@@ -458,8 +436,7 @@ int main(int argc, char** argv) {
 	
 	/* ----------------------------------------------------- */
 #endif
-
-
+	printf("----------------------------\n");
 	printf("Amount of blocks: %d\n", numOfBlocks);
 	printf("Amount of threads per block: %d\n", threadsPerBlock);
 
@@ -601,7 +578,7 @@ int main(int argc, char** argv) {
 		}
 		steps++;
 	}
-
+	/*
 	// copy end state of simulation from device to host	
 	HANDLE_ERROR(cudaMemcpy(hostParticles, devParticles, (4 * sconf.amount), cudaMemcpyDeviceToHost));
 	HANDLE_ERROR(cudaPeekAtLastError());
@@ -609,8 +586,6 @@ int main(int argc, char** argv) {
 	cudaDeviceSynchronize();
 	HANDLE_ERROR(cudaPeekAtLastError());
 
-
-	/*
 	// output directly from GPU
 	GPUPrintParticles << <1, 1 >> >((float4 *)devParticles, 10);
 	// output of values on CPU
@@ -650,9 +625,11 @@ int main(int argc, char** argv) {
 	printf("CUDA: %f\n", miliseconds/(1000.0));
 	
 	// free CPU arrays
+#ifdef WITH_CPU
 	delete [] xnew;
 	delete [] ynew;
 	delete [] znew;
+#endif
 
 	delete[] hostParticles;
 	delete[] hostVelocities;
@@ -729,7 +706,7 @@ void getDeviceInfo()
 {
 	int devCount = 0;
 	cudaGetDeviceCount(&devCount);
-	cudaError_t cudaStatus;
+
 	printf("Amount of devices: %d\n", devCount);
 
 	for (int i = 0; i < devCount; i++) {
