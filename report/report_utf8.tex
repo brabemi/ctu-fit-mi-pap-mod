@@ -745,4 +745,11 @@ Lineárního zrychlení dosaženo nebylo.
 Výsledky konfigurace č. 2, tj. každému procesoru dát přesně 1 blok, byly víceméně očekávané - každý dostupný procesor byl využíván a práce byla rovnoměrně rozdělena.
 Výsledky konfigurace č. 4 jsou naopak poněkud překvapivé.
 
+Co se týče porovnání všech implementací algoritmu na všech platformách, nejvyššího zrychlení dosáhla právě konfigurace č. 4 ve 4. měření, a to hodnoty 78.
+Xeon Phi dosáhl nejvyššího zrychlení 63 na stejné množině dat. V jednotkách času byl Xeon v tomto měření pomalejší o přibližně 2 vteřiny.
+Nutno podotknout, že hodnoty sekvenčního času, použité pro výpočet paralelního zrychlení pro Xeon Phi a CUDA,
+jsou brány z výsledků varianty 2 z implementace pro klasické procesory
+a tedy už jsou ovlivněny automatickou optimalizací a vektorizací, která výpočet zrychlila přibližně 6*.
+Pokud bychom počítali paralelní zrychlení za použití sekvenčního času z varianty 1 pro klasické procesory, výsledné zrychlení by bylo mnohonásobně vyšší.
+
 \end{document}
