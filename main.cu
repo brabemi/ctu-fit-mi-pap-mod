@@ -80,7 +80,7 @@ using namespace cimg_library; // -> no need to use cimg_library::function()
 using namespace std;
 #endif
 
-__device__ __host__ float bounce(float x, float y, float z, const float maxX, const float maxY, const float maxZ) {
+__device__ __host__ bool bounce(float x, float y, float z, const float maxX, const float maxY, const float maxZ) {
 	return (x < 0) || (maxX < x) || (y < 0) || (maxY < y) || (z < 0) || (maxZ < z);
 }
 
