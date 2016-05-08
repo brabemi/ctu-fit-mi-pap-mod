@@ -620,7 +620,7 @@ Vizualizace řešení je stejná jako v předchozích variantách
 Dále je možné vizualizovat přímo za běhu simulace přes knihovnu CImg, kdy je ale celkem velká režie v samotném vykreslování a přenosu dat z GPU na CPU.
 
 \subsection{Nastavení kompilátoru}
-Ke kompilaci byl použit kompilátor g++ a nvcc. za zmínku stojí využití přepínače -O3, tedy optimalizace.
+Ke kompilaci byl použit kompilátor g++ a nvcc. Za zmínku stojí využití přepínače -O3, tedy optimalizace.
 OpenMP bylo přilinkováno kvůli měření času (ten byl měřen jak přes cudaEvent, tak přes omp\_get\_wtime()).
 
 Příkazy pro kompilaci pro celý program byly následující:
@@ -702,7 +702,8 @@ Třetí konfigurace vytvářela bloky podle maximálního počtu vláken ve warp
 \captionof{table}{Výsledky měření - třetí konfigurace, 1 warp na blok}
 \end{center}
 
-Třetí konfigurace byla dále upravena tak, aby na jeden blok vyšly 4 warpy.
+Třetí konfiguraci jsme upravili a každému bloku přiřadili čtyřnásobek maximálního počtu vláken v jednom warpu,
+výsledkem je čtvrtá konfigurace s následujícími výsledky.
 \begin{center}
 \begin{tabular}{c | c | c | c}
 \textbf{Měření} & \textbf{Počet bloků} & \textbf{Počet vláken na blok} & \textbf{Čas} \\ \hline \hline
@@ -711,14 +712,37 @@ Třetí konfigurace byla dále upravena tak, aby na jeden blok vyšly 4 warpy.
 3 & 32 & 128 & 16.599383 \\ \hline
 4 & 64 & 128 & 9.218899 \\ \hline
 \end{tabular}
-\captionof{table}{Výsledky měření - třetí konfigurace, 4 warpy na blok}
+\captionof{table}{Výsledky měření - čtvrtá konfigurace, 4 warpy na blok}
 \end{center}
 
+Následují grafy časů měření a paralelního zrychlení.
+Paralelní zrychlení bylo počítáno vůči stejnému sekvenčnímu času, jako u výpočtu paralelního zrychlení pro Xeon Phi.
+\begin{figure}[H]
+  \begin{center}
+      \includegraphics[width=14cm]{images/cuda/casy.png}
+    \caption{Časy měření}
+  \end{center}
+\end{figure}
 
-
+\begin{figure}[H]
+  \begin{center}
+      \includegraphics[width=14cm]{images/cuda/zrychleni.png}
+    \caption{Časy měření}
+  \end{center}
+\end{figure}
 
 \subsection{Vyhodnocení}
+Z výsledků měření je vidět, že algoritmu opět vyhovoval větší počet částic, v měřeních č. 3 a 4 bylo u všech konfigurací dosaženo nejvyššího zrychlení.
 
+Co se konfigurací týče, nelze řici, že by jedna konfigurace byla optimální pro všechny vstupy.
+Nejlepší výsledky dosahují konfigurace č. 2 a 4, hodnoty paralelního zrychlení mají podobné.
 
+Nejvyššího zrychlení dosáhla konfigurace č. 4, a to hodnoty až 78 v měření č. 4. Těsně za ní je konfigurace č. 2 se zrychlením 77 ve stejném měření.
+Konfigurace č. 4 dosáhla nejlepšího zrychlení ve 3 měřeních ze 4.
+Konfigurace č. 2 dosáhla nejlepšího zrychlení ve 3. měření (hodnota 44), v tomto měření měla konf. č. 4 zrychlení pouze 37.
+Lineárního zrychlení dosaženo nebylo.
+
+Výsledky konfigurace č. 2, tj. každému procesoru dát přesně 1 blok, byly víceméně očekávané - každý dostupný procesor byl využíván a práce byla rovnoměrně rozdělena.
+Výsledky konfigurace č. 4 jsou naopak poněkud překvapivé.
 
 \end{document}
