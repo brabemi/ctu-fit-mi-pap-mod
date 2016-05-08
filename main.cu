@@ -133,6 +133,7 @@ __global__ void CopyCoordinatesKernel (float * x, float * y, float * z,
 __global__ void CopyCoordinatesKernel(float4 * sourceCoords, float4 * newCoords, int n)
 {
 	int gtid = blockIdx.x * blockDim.x + threadIdx.x;
+	if (gtid >= n) return;
 
 	float4 source = sourceCoords[gtid];
 	float4 newCoordsVec = newCoords[gtid];
@@ -161,6 +162,8 @@ __global__ void CopyCoordinatesKernelSeq(float4 * sourceCoords, float4 * newCoor
 	}
 }
 
+#define DEFAULT // which kind of work distribution is selected
+
 __device__ float3 perParticleAcceleration(float4 first, float4 second, float3 aXYZ, float eps)
 {
 	int globalThreadIndex = blockIdx.x * blockDim.x + threadIdx.x;
@@ -185,6 +188,12 @@ __device__ float3 perParticleAcceleration(float4 first, float4 second, float3 aX
 	float tmp_sum; // only assigned to, should be OK
 	float invr, invr3; // only assigned to, should be OK
 	float f; // only assigned to, should be OK
+	
+	int maxParticles = blockDim.x; // amount of particles % threadsPerBlock
+
+#ifdef OBOC // one block per one processor
+	if (blockIdx.x == gridDim.x) { maxParticles = n % (blockDim.x+1); /*if (maxParticles == 0) maxParticles == blockDim.x;*/ }
+#endif
 
 	// for each particle ...
 	for (i = 0; i < n; i += offset) { // offset == threadsPerBlock specified in calling of the kernel
@@ -196,7 +205,7 @@ __device__ float3 perParticleAcceleration(float4 first, float4 second, float3 aX
 		__syncthreads(); // wait for every thread so the SM is full
 
 		// count current subblock
-		for (int j = 0; j < blockDim.x; j++) { // !!! this might cause problems, will work ONLY if every thread in this block copied particle to SM !!!
+		for (int j = 0; j < maxParticles; j++) { // !!! this might cause problems, will work ONLY if every thread in this block copied particle to SM !!!
 			
 			dXYZ.x = threadVector.x - particlesInSM[j].x;
 			dXYZ.y = threadVector.y - particlesInSM[j].y;
@@ -386,20 +395,32 @@ int main(int argc, char** argv) {
 	int threadsPerBlock = 0, numOfBlocks = 0;
 
 
+#ifdef OBOC // one block per one processor
 	/* ----------------------------------------------------- */
-	/*numOfBlocks = 32; // problem if (sconf.amount / numOfBlocks) != X.000000000
+	/* One block per processor */
+	numOfBlocks = prop.multiProcessorCount;
 	threadsPerBlock = ((sconf.amount) / numOfBlocks);
 	if (threadsPerBlock > prop.maxThreadsPerBlock)
 	{
 		printf("NOPE NOPE NOPE");
-	}*/
+	}
 	/* ----------------------------------------------------- */
-	
+#endif
 
+#ifdef WARP // one warp per one block - very slow, better to give more warps
+	/* ----------------------------------------------------- */
+	/* One block per processor */
+	threadsPerBlock = prop.warpSize*4; // MUST be power of two
+	numOfBlocks = ((sconf.amount - 1) / threadsPerBlock);
+	numOfBlocks += 1;
+	/* ----------------------------------------------------- */
+#endif
+
+#ifdef DEFAULT
 	/* ----------------------------------------------------- */
 	
-	// One possible configuration of blocks and threads - uses less processors than it might 
-	threadsPerBlock = (prop.maxThreadsPerBlock / 2); // should be power of 2
+	// One possible configuration of blocks and threads
+	threadsPerBlock = (prop.maxThreadsPerBlock / 2); // MUST be power of 2
 	// why only half of max - SM has limited amount of registers etc.
 	// if limits reached -> kernel will not start (HANDLE_ERROR(startkernel<<<>>>()) will detect and print out this error)
 	// /2 is just a working guess, may be optimized
@@ -408,9 +429,7 @@ int main(int argc, char** argv) {
 	numOfBlocks += 1; // amount = 1024, maxThreadsPerBlock = 1024 -> 2 blocks, both only half of max threads
 	
 	/* ----------------------------------------------------- */
-
-
-
+#endif
 
 
 	printf("Amount of blocks: %d\n", numOfBlocks);
