@@ -162,9 +162,33 @@ __global__ void CopyCoordinatesKernelSeq(float4 * sourceCoords, float4 * newCoor
 	}
 }
 
+__device__ float3 perParticleAcceleration(float4 first, float4 second, float3 aXYZ, float eps)
+{
+	float3 dXYZ;
+	dXYZ.x = first.x - second.x;
+	dXYZ.y = first.y - second.y;
+	dXYZ.z = first.z - second.z;
+
+	float tmp_sum = dXYZ.x * dXYZ.x + dXYZ.y * dXYZ.y + dXYZ.z * dXYZ.z + eps;
+	
+	//float invr = 1/sqrtf(tmp_sum);
+	float invr = rsqrtf(tmp_sum);
+
+	float invr3 = invr*invr*invr;
+
+	float f = F_QUOC * second.w * invr3;
+
+	aXYZ.x += dXYZ.x * f;
+	aXYZ.y += dXYZ.y * f;
+	aXYZ.z += dXYZ.z * f;
+	return aXYZ;
+}
+
 #define DEFAULT // which kind of work distribution is selected
 
-__device__ float3 perParticleAcceleration(float4 first, float4 second, float3 aXYZ, float eps)
+__global__ void OneStepSimulation(float4 * sourceCoords, float4 * newCoords,
+	float4 * velocities, float eps, float dt, int n, int offset,
+	const float maxX, const float maxY, const float maxZ)
 {
 	int globalThreadIndex = blockIdx.x * blockDim.x + threadIdx.x;
 	if (globalThreadIndex >= n) return;
@@ -188,7 +212,7 @@ __device__ float3 perParticleAcceleration(float4 first, float4 second, float3 aX
 	float tmp_sum; // only assigned to, should be OK
 	float invr, invr3; // only assigned to, should be OK
 	float f; // only assigned to, should be OK
-	
+
 	int maxParticles = blockDim.x; // amount of particles % threadsPerBlock
 
 #ifdef OBOC // one block per one processor
@@ -205,6 +229,7 @@ __device__ float3 perParticleAcceleration(float4 first, float4 second, float3 aX
 		__syncthreads(); // wait for every thread so the SM is full
 
 		// count current subblock
+		// original condition: j < blockDim.x
 		for (int j = 0; j < maxParticles; j++) { // !!! this might cause problems, will work ONLY if every thread in this block copied particle to SM !!!
 			
 			dXYZ.x = threadVector.x - particlesInSM[j].x;
@@ -388,7 +413,10 @@ int main(int argc, char** argv) {
 
 	unsigned steps = 0;
 
-	// count amount of blocks needed
+
+
+
+	// count amount of blocks and threads needed
 	cudaDeviceProp prop;
 	HANDLE_ERROR(cudaGetDeviceProperties(&prop, 0)); // get device properties
 
@@ -433,6 +461,7 @@ int main(int argc, char** argv) {
 
 
 	printf("Amount of blocks: %d\n", numOfBlocks);
+	printf("Amount of threads per block: %d\n", threadsPerBlock);
 
 	// CUDA time measurement with events
 	cudaEvent_t start, stop;
@@ -446,10 +475,7 @@ int main(int argc, char** argv) {
 	// Start OpenMP time measurement
 	double t1 = omp_get_wtime();
 
-
-
-	#define WITH_CPU // simulation on CPU is on
-
+//#define WITH_CPU
 
 	#ifdef LOGGING
 	printf("Starting simulation ...\n");
@@ -593,9 +619,9 @@ int main(int argc, char** argv) {
 		printf("%d. %f %f %f %f\t", i, hostParticles[4*i], hostParticles[4*i + 1], hostParticles[4*i + 2], hostParticles[4*i + 3]);
 		printf("%d. %f %f %f %f\n", i, x[i], y[i], z[i], m[i]);
 	}*/
-
-	/* // Control - differences are quite large in case of many steps (500 and more)
-	double diffTol = 300.0;
+	/*
+    // Control - differences are quite large in case of many steps (500 and more)
+	double diffTol = 100.0;
 	for (int i = 0; i < n; i++)
 	{
 		int base = i * 4;
@@ -716,6 +742,8 @@ void getDeviceInfo()
 		}*/
 		printf("Device Number: %d\n", i);
 		printf("  Device name: %s\n", prop.name);
+
+		printf("  Multiprocessor count: %d\n", prop.multiProcessorCount);
 
 		printf("  Total global Memory: %d\n", prop.totalGlobalMem);
 
