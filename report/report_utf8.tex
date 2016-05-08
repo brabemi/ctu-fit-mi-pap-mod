@@ -664,6 +664,57 @@ Cílem třetí konfigurace bylo rozdělit práci mezi bloky v násobcích maxim�
 Tj. počet vláken na blok byl daný, počet bloků se dopočítal.
 
 \subsection{Výsledky měření}
+Výsledky měření jsou rozděleny dle konfigurací počtu bloků a vláken.
+
+První konfigurace každému bloku přiřadila polovinu maximálního počtu vláken na blok.
+\begin{center}
+\begin{tabular}{c | c | c | c}
+\textbf{Měření} & \textbf{Počet bloků} & \textbf{Počet vláken na blok} & \textbf{Čas} \\ \hline \hline
+1 & 2 & 512 & 40.412819 \\ \hline
+2 & 1 & 512 & 179.509688 \\ \hline
+3 & 8 & 512 & 19.369270 \\ \hline
+4 & 16 & 512 & 10.744051 \\ \hline
+\end{tabular}
+\captionof{table}{Výsledky měření - první konfigurace}
+\end{center}
+
+Druhá konfigurace vytvořila pro každý multiprocesor jeden blok, počet vláken na blok se podle toho dopočítával.
+\begin{center}
+\begin{tabular}{c | c | c | c}
+\textbf{Měření} & \textbf{Počet bloků} & \textbf{Počet vláken na blok} & \textbf{Čas} \\ \hline \hline
+1 & 15 & 68 & 35.196102 \\ \hline
+2 & 15 & 34 & 162.918234 \\ \hline
+3 & 15 & 273 & 13.931557 \\ \hline
+4 & 15 & 546 & 9.310848 \\ \hline
+\end{tabular}
+\captionof{table}{Výsledky měření - druhá konfigurace}
+\end{center}
+
+Třetí konfigurace vytvářela bloky podle maximálního počtu vláken ve warpu.
+\begin{center}
+\begin{tabular}{c | c | c | c}
+\textbf{Měření} & \textbf{Počet bloků} & \textbf{Počet vláken na blok} & \textbf{Čas} \\ \hline \hline
+1 & 32 & 32 & 34.932582 \\ \hline
+2 & 16 & 32 & 171.764859 \\ \hline
+3 & 128 & 32 & 16.723470 \\ \hline
+4 & 256 & 32 & 16.915611 \\ \hline
+\end{tabular}
+\captionof{table}{Výsledky měření - třetí konfigurace, 1 warp na blok}
+\end{center}
+
+Třetí konfigurace byla dále upravena tak, aby na jeden blok vyšly 4 warpy.
+\begin{center}
+\begin{tabular}{c | c | c | c}
+\textbf{Měření} & \textbf{Počet bloků} & \textbf{Počet vláken na blok} & \textbf{Čas} \\ \hline \hline
+1 & 8 & 128 & 33.198480 \\ \hline
+2 & 4 & 128 & 163.552016 \\ \hline
+3 & 32 & 128 & 16.599383 \\ \hline
+4 & 64 & 128 & 9.218899 \\ \hline
+\end{tabular}
+\captionof{table}{Výsledky měření - třetí konfigurace, 4 warpy na blok}
+\end{center}
+
+
 
 
 \subsection{Vyhodnocení}
