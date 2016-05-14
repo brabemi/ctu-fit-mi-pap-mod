@@ -71,10 +71,12 @@ using namespace cimg_library; // -> no need to use cimg_library::function()
 using namespace std;
 #endif
 
+// check if the particle is still within simulation area
 bool bounce (float x, float y, float z, SimConfig & sconf) {
 	return (x < 0) || (WIDTH < x) || (y < 0) || (HEIGHT < y) || (z < 0) || (DEPTH < z);
 }
 
+// bounce particle, velocity
 float debounce_vel (float vel, float pos, int min, int max) {
 	if((pos < min) || (max < pos)) {
 		return -1*BOUNCE_LOSS*vel;
@@ -82,6 +84,7 @@ float debounce_vel (float vel, float pos, int min, int max) {
 	return BOUNCE_LOSS*vel;
 }
 
+// bounce position
 float debounce_pos (float pos, int min, int max) {
 	if(pos < min) {
 		return -1 * pos;
@@ -206,9 +209,9 @@ int main(int argc, char** argv) {
 			az=0.0;
 			
 			// reduction = parallel reduction of accelerations ax, ay, az
-			#ifdef PARALLEL_OPENMP
-			#pragma omp parallel for num_threads(threads) private(dx,dy,dz,invr,invr3,f) reduction(+:ax,ay,az)
-			#endif
+			//#ifdef PARALLEL_OPENMP
+			//#pragma omp parallel for num_threads(threads) private(dx,dy,dz,invr,invr3,f) reduction(+:ax,ay,az)
+			//#endif
 			for(j=0; j<n; j++) { /* Loop over all particles "j" */
 				dx=x[j]-x[i];
 				dy=y[j]-y[i];

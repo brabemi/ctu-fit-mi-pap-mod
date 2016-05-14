@@ -588,8 +588,7 @@ Celkově dopadlo měření podle očekávání.
 Kompilátor provedl vektorizaci podobným způsobem jako kompilátor pro klasické procesory, algoritmus ovšem dokázal zužitkovat všech 244 vláken Xeonu Phi a čas výpočtu simulace tak byl výrazně nižší.
 
 \section{Naměřené výs\-led\-ky a vyhod\-noce\-ní pro CUDA}
-Implementace pomocí CUDA vycházela z původního sekvenčního algoritmu.
-Paralelizace byla provedena jiným způsobem, než v předchozích implementacích pro Xeon Phi a klasické procesory.
+V sekci je popis implementace, výsledky měření a vyhodnocení simulace využívající technologii CUDA, výpočet běží na grafické kartě.
 
 \subsection{Popis implementace}
 V této sekci je popis implementace za použití technologie CUDA.
@@ -597,20 +596,20 @@ V této sekci je popis implementace za použití technologie CUDA.
 Zparalelizován byl vnější cyklus výpočtu nových pozic částic tak,
 aby každé vlákno dostalo svou jednu částici a
 pro tuto částici vypočetlo zrychlení
-(vnitřní cyklus simulace - ten, který se prováděl paralelně v implementacích pro Xeon Phi a klasické procesory).
-Důvodem změny paralelizovaného cyklu byla omezená velikost sdílené paměti multiprocesoru,
+(vnitřní cyklus simulace).
+Paralelizace vnitřního cyklu by byla problematická a pravděpodobně by se nevyplatila, důvody jsou velmi krátký výpočet, omezená velikost sdílené paměti multiprocesoru,
 pomalejší čtení z globální paměti a nutnost paralelní redukce (případně i nad globální paměti) jednotlivých zrychlení, resp. vektorů zrychlení.
 
 Co se týče využití globální paměti, v té jsou uloženy souřadnice částic jako vektor typu float4 (x,~y,~z,~hmotnost) a rychlosti částic jako typ float4 (vx,~vy,~vz,~0).
 Důvod volby typu float4 je v čtení všech informací o částici v jednom jediném čtení z globální paměti a čtení z paměti po 128B.
-Tato úprava vyžadovala vytvořit převodník mezi formátem několika za sebou jdoucích lineárních polích (jednotlivě pro x, y, z, atd.) do float4 (x,~y,~z,~m) a (vx,~vy,~vz,~0).
+Tato úprava vyžadovala vytvořit převodník mezi formátem několika za sebou jdoucích lineárních polích (jednotlivě pro x, y, z, m, atd.) do float4 (x,~y,~z,~m) a (vx,~vy,~vz,~0).
 
 Sdílená paměť se využívá jako cache pro částice z globální paměti.
 Každé vlákno ve svém bloku přečte částici z globální paměti na indexu vypočteném z indexu daného vlákna a sub-bloku.
 Sub-blok značí aktuální podmnožinu částic, jejichž vliv se v aktuální iteraci připočítává k částici vlákna.
 Dále částici uloží do sdílené paměti na indexu rovném indexu vlákna.
-Poté, co každé vlákno bloku toto čtení a uložení provede, začne každé vlákno počítat vlivy ostatních částic na svou přidruženou částici,
-přičemž informace o ostatních částicích bere právě z rychlejší sdílené paměti, nikoliv z globální.
+Poté, co každé vlákno bloku toto čtení a uložení provede, začne každé vlákno počítat vli\-vy os\-tat\-ních čás\-tic na svou přidruženou částici,
+přičemž informace o os\-tat\-ních čás\-ticích bere právě z rychlejší sdílené paměti, nikoliv z globální.
 
 Čtení/zápis z/do globální paměti je tedy nutný v každém jednom vlákně v každém kroku simulace,
 ale díky využití typu float4 a sdílené paměti by měla být doba přístupu a počet přístupů do globální paměti výrazně nižší.
@@ -649,24 +648,27 @@ Pro připomenutí jsou jednotlivá zadání uvedena v následující tabulce.
 \end{center}
 
 \subsection{Konfigurace bloků a vláken}
-Byly zvoleny celkem 3 konfigurace bloků a vláken.
+Byly zvoleny celkem 4 konfigurace bloků a vláken.
 
 První konfigurace měla přiřadit co možná nejvíc vláken každému jednotlivému bloku, počet bloků se poté dopočítal.
 Počet vláken na 1 blok jsme nastavili na polovinu maximálního počtu, co dovolovalo zařízení.
 Volba poloviny max. počtu je kvůli dalším HW omezením - při vyšších počtech vláken na blok nebylo dost registrů apod.
 
-Druhá konfigurace měla každému dostupnému procesoru přiřadit právě jeden blok, počet vláken na blok se následně dopočítal.
+Druhá konfigurace měla každému dostupnému procesoru přiřadit právě jeden blok, počet vláken na blok se následně dopo\-čítal.
 Tato konfigurace má nevýhodu v počtu vláken - může vznikout blok o malém počtu vláken, resp. warp s několika málo vlákny.
 Další riziko bylo v přetečení počtu vláken v posledním bloku - na každé vlákno nemusela vyjít částice.
 Tento problém byl vyřešen přes podmínku a dopočet horní hranice, s důsledkem možného dělení warpu.
 
 Cílem třetí konfigurace bylo rozdělit práci mezi bloky v násobcích maximálního počtu vláken v jednom warpu.
 Tj. počet vláken na blok byl daný, počet bloků se dopočítal.
+Pro třetí konfiguraci jsme zvolili 1 warp na 1 blok.
+Protože třetí konfigurace mohla mít vysokou režii kvůli počtu bloků,
+zkusili jsme čtvrtou konfiguraci s vyšším počtem warpů na blok - přesněji 4 warpy na 1 blok.
 
 \subsection{Výsledky měření}
 Výsledky měření jsou rozděleny dle konfigurací počtu bloků a vláken.
 
-První konfigurace každému bloku přiřadila polovinu maximálního počtu vláken na blok.
+První konfigurace každému bloku přiřadila polovinu maximálního počtu vláken na blok. Počet bloků se dopočítal.
 \begin{center}
 \begin{tabular}{c | c | c | c}
 \textbf{Měření} & \textbf{Počet bloků} & \textbf{Počet vláken na blok} & \textbf{Čas} \\ \hline \hline
@@ -717,6 +719,7 @@ výsledkem je čtvrtá konfigurace s následujícími výsledky.
 
 Následují grafy časů měření a paralelního zrychlení.
 Paralelní zrychlení bylo počítáno vůči stejnému sekvenčnímu času, jako u výpočtu paralelního zrychlení pro Xeon Phi.
+Sekvenční čas je tedy z varianty 2 pro klasické procesory, tj. varianty s automatickou optimalizací a vektorizací.
 \begin{figure}[H]
   \begin{center}
       \includegraphics[width=14cm]{images/cuda/casy.png}
@@ -727,11 +730,11 @@ Paralelní zrychlení bylo počítáno vůči stejnému sekvenčnímu času, jak
 \begin{figure}[H]
   \begin{center}
       \includegraphics[width=14cm]{images/cuda/zrychleni.png}
-    \caption{Časy měření}
+    \caption{Paralelní zrychlení}
   \end{center}
 \end{figure}
 
-\subsection{Vyhodnocení}
+\subsection{Vyhodnocení CUDA}
 Z výsledků měření je vidět, že algoritmu opět vyhovoval větší počet částic, v měřeních č. 3 a 4 bylo u všech konfigurací dosaženo nejvyššího zrychlení.
 
 Co se konfigurací týče, nelze řici, že by jedna konfigurace byla optimální pro všechny vstupy.
@@ -742,14 +745,47 @@ Konfigurace č. 4 dosáhla nejlepšího zrychlení ve 3 měřeních ze 4.
 Konfigurace č. 2 dosáhla nejlepšího zrychlení ve 3. měření (hodnota 44), v tomto měření měla konf. č. 4 zrychlení pouze 37.
 Lineárního zrychlení dosaženo nebylo.
 
+Konfigurace č. 1, ve které se přiřazovala polovina maximálního počtu vláken každému bloku,
+měla problém s efektivním využitím všech dostupných multiprocesorů.
+To je vidět zejména na měření č. 1 a 2, ve kterých se využil 1, maximálně 2 multiprocesory.
+Naopak v měření č. 3 a 4 se muselo zapojit více multiprocesorů (zařízení jich mělo 15) a zrychlení již bylo výrazné, např. ve 4. měření dosahovalo hodnoty téměř 70.
+
+Konfigurace č. 3, tedy 1 warp na 1 blok, trpěla kvůli vysokému počtu bloků s malým počtem vláken.
+Nejlépe je to vidět na 4. měření, kdy muselo být vytvořeno 8192/32 bloků, tedy 256 bloků pro 15 multiprocesorů.
+Při menším počtu částic se ještě dokázala vyrovnat nejrychlejším konfiguracím (měření 1, 2),
+ovšem již u 3. měření je vidět pokles a ve 4. měření je pouze lehce nadpoloviční hodnota zrychlení oproti nejrychlejší konfiguraci.
+
 Výsledky konfigurace č. 2, tj. každému procesoru dát přesně 1 blok, byly víceméně očekávané - každý dostupný procesor byl využíván a práce byla rovnoměrně rozdělena.
 Výsledky konfigurace č. 4 jsou naopak poněkud překvapivé.
+Důvodem je pravděpodobně efektivnější provádění bloků, než tomu bylo ve variantě č. 2,
+kdy vznikaly warpy s menším než maximálním počtem vláken při každém výpočtu 1 kroku simulace.
 
-Co se týče porovnání všech implementací algoritmu na všech platformách, nejvyššího zrychlení dosáhla právě konfigurace č. 4 ve 4. měření, a to hodnoty 78.
-Xeon Phi dosáhl nejvyššího zrychlení 63 na stejné množině dat. V jednotkách času byl Xeon v tomto měření pomalejší o přibližně 2 vteřiny.
+\newpage
+\section{Závěr}
+V rámci této semestrální práce byl implementován algoritmus NBody pro různé platformy, jmenovitě pro klasické Intel procesory, Xeon Phi a grafické karty nVidia.
+Nejprve byla vytvořena sekvenční implementace v jazyce C++,
+následovala optimalizace a vektorizace (auto\-matická i ruční s využitím Intel AVX SSE2)
+a dále paralelizace použitím knihovny OpenMP.
+Poté jsme upravili program pro Xeon Phi a implemen\-tovali algoritmus za použití technologie CUDA.
+
+Vizualizace simulace byla implementována pomocí kni\-hovny CImg, nabí\-zející ži\-vý výstup ze simulace přímo do okna programu.
+Další implementovaná možnost vizualizace je přes program gnuplot,
+kdy program generuje zdrojový kód a datový soubor pro gnuplot.
+
+\subsection{Porovnání výkonu všech implementací}
+% Co se týče porovnání všech implementací algoritmu na všech platformách, nejvyššího zrychlení dosáhla právě konfigurace č. 4 ve 4. měření, a to hodnoty 78.
+Nejvyššího zrychlení dosáhla CUDA konfigurace č. 4 ve 4. měření, a to hodnoty 78.
+Xeon Phi dosáhl nejvyššího zrychlení 63 na stejné množině dat. V jednotkách času byl Xeon Phi v tomto měření pomalejší o přibližně 2 vteřiny.
+Paralelizace přes OpenMP na klasických procesorech dosáhla zrychlení až 14${\times}$ s automatickou vektorizací, až 13,1${\times}$ pak s ruční vektorizací.
+Pro připomenutí, automatická optimalizace a vektorizace zrychlila výpočet přibližně až 6${\times}$, po přidání ruční vektorizace až 8${\times}$.
+
 Nutno podotknout, že hodnoty sekvenčního času, použité pro výpočet paralelního zrychlení pro Xeon Phi a CUDA,
 jsou brány z výsledků varianty 2 z implementace pro klasické procesory
-a tedy už jsou ovlivněny automatickou optimalizací a vektorizací, která výpočet zrychlila přibližně 6*.
+a tedy už jsou ovlivněny automatickou optimalizací a vektorizací, která výpočet zrychlila přibližně 6${\times}$.
 Pokud bychom počítali paralelní zrychlení za použití sekvenčního času z varianty 1 pro klasické procesory, výsledné zrychlení by bylo mnohonásobně vyšší.
+
+\subsection{Literatura}
+Při implementaci algoritmu jsme vycházeli zejména z článku uvedeném v zadání\footnote{\url{http://www.browndeertechnology.com/docs/BDT_OpenCL_Tutorial_NBody-rev3.html#algorithm}},
+pro implementaci algoritmu v jednotlivých technologiích jsme využili zejména přednášky předmětu MI-PAP, dále oficiální dokumentaci CUDA\footnote{\url{http://docs.nvidia.com/cuda/}}.
 
 \end{document}
